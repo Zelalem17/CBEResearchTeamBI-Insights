@@ -216,9 +216,9 @@ footer{padding:14px 26px;font-family:var(--mono);font-size:10.5px;color:var(--te
    see README "Security note".
 
    Researcher accounts can come from two places:
-   1. BUILT_IN_RESEARCHERS below — baked into this file, so they work for
+   1. BUILT_IN_RESEARCHERS below baked into this file, so they work for
       ANY visitor to the deployed site, on any device/browser.
-   2. This browser's local storage — accounts (or password changes) an
+   2. This browser's local storage accounts (or password changes) an
       admin made right here, which work instantly on this browser but need
       the "Get permanent account code" step + a redeploy to reach everyone.
 ========================================================= */
@@ -365,13 +365,13 @@ function buildLoginScreen(){
       <div class="auth-form-inner">
         <div class="mobile-brand"><div class="spiral"></div><span>CBE Digital Ledger BI</span></div>
         <h1>Sign in</h1>
-        <div class="auth-sub">Research team access — enter your credentials to continue</div>
+        <div class="auth-sub">Research team access enter your credentials to continue</div>
         <div id="loginErr"></div>
         <div class="field"><label>Username</label><input type="text" id="loginUser" autocomplete="username"></div>
         <div class="field"><label>Password</label><input type="password" id="loginPass" autocomplete="current-password"></div>
         <button class="auth-btn" id="loginBtn">Sign In</button>
         <div class="auth-note">Default admin login: <code>admin</code> / <code>admin123</code>. Admin can create researcher accounts after signing in.<br><br>
-        This is a static site — accounts you create only work everywhere once baked into the code and redeployed (see README, "Security note").</div>
+        This is a static site accounts you create only work everywhere once baked into the code and redeployed (see README, "Security note").</div>
       </div>
     </div>`;
   setTimeout(()=>{
@@ -424,7 +424,7 @@ function buildAdminScreen(session){
       narrow.appendChild(buildManageResearchers());
       body.appendChild(narrow);
     } else {
-      // Dashboard view must NOT be constrained by .admin-wrap — it needs full page width.
+      // Dashboard view must NOT be constrained by .admin-wrap it needs full page width.
       body.appendChild(buildAppScreen(session, true));
       initDashboard();
     }
@@ -445,7 +445,7 @@ function buildManageResearchers(){
   panel.className = 'admin-panel';
   panel.innerHTML = `
     <h2>Add a researcher account</h2>
-    <div class="desc">Give this username and password to the researcher — they'll use it to sign in. Passwords are stored as a SHA-256 hash, never in plain text.</div>
+    <div class="desc">Give this username and password to the researcher they'll use it to sign in. Passwords are stored as a SHA-256 hash, never in plain text.</div>
     <div class="admin-form">
       <div class="field"><label>Full name</label><input type="text" id="newName"></div>
       <div class="field"><label>Username</label><input type="text" id="newUser"></div>
@@ -453,7 +453,7 @@ function buildManageResearchers(){
       <button class="btn gold" id="addResearcherBtn">Add researcher</button>
     </div>
     <div id="addErr"></div>
-    <div id="addSuccess">${lastCreatedCredentials ? `<div class="auth-note success">Account created — copy these now, they won't be shown again:<br>
+    <div id="addSuccess">${lastCreatedCredentials ? `<div class="auth-note success">Account created copy these now, they won't be shown again:<br>
          Username: <code>${lastCreatedCredentials.user}</code> · Password: <code>${lastCreatedCredentials.pass}</code></div>` : ''}</div>`;
   wrap.appendChild(panel);
 
@@ -513,7 +513,7 @@ function buildManageResearchers(){
   codePanel.className = 'admin-panel';
   codePanel.innerHTML = `
     <h2>Make accounts work for everyone</h2>
-    <div class="desc">This is a static site with no server — new accounts and password changes only work on this browser until you bake them into the file. Click below, copy the code, paste it over the <code>BUILT_IN_RESEARCHERS</code> array near the top of <code>index.html</code>'s script, then commit and push to GitHub.</div>
+    <div class="desc">This is a static site with no server new accounts and password changes only work on this browser until you bake them into the file. Click below, copy the code, paste it over the <code>BUILT_IN_RESEARCHERS</code> array near the top of <code>index.html</code>'s script, then commit and push to GitHub.</div>
     <button class="btn ghost" id="genCodeBtn">Get permanent account code</button>
     <div id="codeOutput"></div>`;
   wrap.appendChild(codePanel);
@@ -588,7 +588,7 @@ function buildAppScreen(session, embeddedInAdmin){
     ${embeddedInAdmin ? '' : `
     <header class="app-head">
       <div class="head-row">
-        <div class="brand"><div class="spiral"></div><div><h1>CBE Digital Ledger BI</h1><div class="sub">Digital financial services — CBE vs Industry</div></div></div>
+        <div class="brand"><div class="spiral"></div><div><h1>CBE Digital Ledger BI</h1><div class="sub">Digital financial services CBE vs Industry</div></div></div>
         <div class="who-row"><span class="who-pill">${session.name} · ${session.role==='admin'?'Admin':'Researcher'}</span><button class="logout-btn" id="logoutBtn">Log out</button></div>
       </div>
       <div class="ledger-tape">
@@ -614,10 +614,10 @@ function buildAppScreen(session, embeddedInAdmin){
     <div class="app-shell">
       <aside class="filter-pane" id="filterPane"></aside>
       <main class="canvas" id="pageCanvas">
-        <div class="empty-note">Upload a CSV or Excel file to populate the ledger — see the sidebar for accepted formats.</div>
+        <div class="empty-note">Upload a CSV or Excel file to populate the ledger see the sidebar for accepted formats.</div>
       </main>
     </div>
-    <footer>COMMERCIAL BANK OF ETHIOPIA · DIGITAL LEDGER BI · static client-side app — no data leaves your browser</footer>`;
+    <footer>COMMERCIAL BANK OF ETHIOPIA · DIGITAL LEDGER BI · static client-side app no data leaves your browser</footer>`;
   setTimeout(()=>{
     const lb = document.getElementById('logoutBtn');
     if(lb) lb.onclick = ()=>{ clearSession(); renderRoot(); };
@@ -639,11 +639,11 @@ const state = {
 };
 const CBE_GOLD = '#C9A24B';
 const CBE_PURPLE = '#5C2159';
-// Every entity color comes from CBE's own brand pair (purple + gold) — tints and
+// Every entity color comes from CBE's own brand pair (purple + gold) tints and
 // shades of those two hues only, never an unrelated color. CBE itself always gets
 // the brand purple; every other entity draws from this rotation.
 const ENTITY_PALETTE = [
-  CBE_GOLD,                    // brand gold — typically the first non-CBE entity (e.g. "Industry")
+  CBE_GOLD,                    // brand gold typically the first non-CBE entity (e.g. "Industry")
   shadeColor(CBE_PURPLE, 32),  // lighter purple
   shadeColor(CBE_GOLD, -38),   // deep bronze gold
   '#3E0F3C',                   // deepest brand purple (ink)
@@ -770,8 +770,8 @@ function deriveDatasetView(records){
   const years = [...new Set(records.map(r=>r.year))].sort();
   return {sections, metricsBySection, entities, years};
 }
-// CBE always leads wherever entities are listed — charts, tables, legends, the
-// filter pane — since this is CBE's own reporting tool. Everyone else keeps
+// CBE always leads wherever entities are listed charts, tables, legends, the
+// filter pane since this is CBE's own reporting tool. Everyone else keeps
 // their original relative order.
 function sortEntitiesCbeFirst(list){
   return [...list].sort((a,b)=>{
@@ -790,7 +790,7 @@ function updateTapeUI(){
 }
 
 // Makes an already-uploaded dataset (by id) the one being viewed. Filters,
-// chart-type choices, and the active page reset to defaults on switch — same
+// chart-type choices, and the active page reset to defaults on switch same
 // as what happens today when a fresh file is uploaded.
 function activateDataset(id){
   const ds = state.datasets.find(d=>d.id===id);
@@ -815,7 +815,7 @@ function activateDataset(id){
   state.page = 'overview';
   state.dataFilterSection = 'ALL';
 
-  setStatus(true, `${ds.records.length} records loaded — ${ds.name}`);
+  setStatus(true, `${ds.records.length} records loaded ${ds.name}`);
   updateTapeUI();
   buildPageTabs();
   buildFilterPane();
@@ -850,7 +850,7 @@ function removeDataset(id){
     setStatus(false, 'Awaiting data');
     updateTapeUI();
     const canvas = document.getElementById('pageCanvas');
-    if(canvas) canvas.innerHTML = '<div class="empty-note">Upload a CSV or Excel file to populate the ledger — see the sidebar for accepted formats.</div>';
+    if(canvas) canvas.innerHTML = '<div class="empty-note">Upload a CSV or Excel file to populate the ledger see the sidebar for accepted formats.</div>';
     const tabs = document.getElementById('pageTabs'); if(tabs) tabs.innerHTML = '';
     const fm = document.getElementById('fileMeta'); if(fm) fm.textContent = '';
     buildFilterPane();
@@ -983,7 +983,7 @@ function fmt(n){
 }
 
 /* =========================================================
-   CHART BUILDER — bar/line/area/pie/doughnut/radar/histogram/scatter
+   CHART BUILDER bar/line/area/pie/doughnut/radar/histogram/scatter
 ========================================================= */
 function baseGridColor(){ return '#EADFE8'; }
 function baseCartesianOptions(chartType, yTitle, chartTitle){
@@ -1449,7 +1449,7 @@ function persistDashboardState(){
       sortState: state.sortState
     };
     localStorage.setItem(LS_DASHBOARD, JSON.stringify(snapshot));
-  }catch(e){ /* storage full or unavailable — persistence is a convenience, not critical */ }
+  }catch(e){ /* storage full or unavailable persistence is a convenience, not critical */ }
 }
 
 // Restores every uploaded dataset (and where you were: which one was active,
@@ -1495,7 +1495,7 @@ function restoreDashboardState(){
       || (snap.page && snap.page.startsWith('sec:') && state.sections.includes(snap.page.slice(4)));
     state.page = validPage ? snap.page : 'overview';
 
-    setStatus(true, `${state.records.length} records restored from your last session — ${ds.name}`);
+    setStatus(true, `${state.records.length} records restored from your last session ${ds.name}`);
     updateTapeUI();
     const fm = document.getElementById('fileMeta'); if(fm) fm.textContent = ds.name + ' (restored)';
 
@@ -1525,13 +1525,13 @@ function renderOverview(root, mounts){
     const metric = state.metricsBySection[sec][0];
     return { section: sec, metric, vals: ents.map(e=>valueFor(e,sec,metric,ly)) };
   });
-  root.appendChild(leaderboardTable(rows, ents, '01', `All-channel comparison — ${ly}`, 'Primary metric per channel, compared across every entity.'));
+  root.appendChild(leaderboardTable(rows, ents, '01', `All-channel comparison ${ly}`, 'Primary metric per channel, compared across every entity.'));
 
   const grid = document.createElement('div');
   grid.className = 'grid-2';
   const barSeries = {};
   ents.forEach(e=> barSeries[e] = state.sections.map(sec=>{ const m = state.metricsBySection[sec][0]; return valueFor(e,sec,m,ly) ?? 0; }));
-  const p1 = createChartPanel({ id:'ov-bar', idx:'02', title:'Channel scale comparison', desc:`Primary metric per channel, entities side by side — ${ly}.`,
+  const p1 = createChartPanel({ id:'ov-bar', idx:'02', title:'Channel scale comparison', desc:`Primary metric per channel, entities side by side ${ly}.`,
     labels: state.sections, seriesMap: barSeries, defaultType:'bar', allowed:ALL_CHART_TYPES, tall:true, yTitle:'Value (native units)' });
   grid.appendChild(p1.el); mounts.push(p1.mount);
 
@@ -1539,21 +1539,21 @@ function renderOverview(root, mounts){
     const [a,b] = ents;
     let sumA=0,sumB=0;
     state.sections.forEach(sec=>{ const m = state.metricsBySection[sec][0]; sumA += valueFor(a,sec,m,ly)||0; sumB += valueFor(b,sec,m,ly)||0; });
-    const p2 = createChartPanel({ id:'ov-gauge', idx:'03', title:`${a} share of combined footprint`, desc:`${a} vs ${b}, summed primary metrics — ${ly}.`,
+    const p2 = createChartPanel({ id:'ov-gauge', idx:'03', title:`${a} share of combined footprint`, desc:`${a} vs ${b}, summed primary metrics ${ly}.`,
       labels:['Share'], seriesMap:{[a]:[sumA],[b]:[sumB]}, defaultType:'doughnut', allowed:ALL_CHART_TYPES, tall:true });
     grid.appendChild(p2.el); mounts.push(p2.mount);
   } else {
     const shareSeries = {}; ents.forEach(e=> shareSeries[e] = [state.sections.reduce((s,sec)=>{ const m=state.metricsBySection[sec][0]; return s+(valueFor(e,sec,m,ly)||0); },0)]);
-    const p2 = createChartPanel({ id:'ov-pie', idx:'03', title:'Share of industry footprint', desc:`Entity share of total across all channels — ${ly}.`,
+    const p2 = createChartPanel({ id:'ov-pie', idx:'03', title:'Share of industry footprint', desc:`Entity share of total across all channels ${ly}.`,
       labels:['Share'], seriesMap: shareSeries, defaultType:'pie', allowed:ALL_CHART_TYPES, tall:true });
     grid.appendChild(p2.el); mounts.push(p2.mount);
   }
   root.appendChild(grid);
 
-  // Individual chart per channel — not just the combined totals above.
+  // Individual chart per channel not just the combined totals above.
   const heading = document.createElement('div');
   heading.className = 'section-heading';
-  heading.textContent = 'Every channel, individually — primary metric trend';
+  heading.textContent = 'Every channel, individually primary metric trend';
   root.appendChild(heading);
 
   const yrs = activeYearsArr();
@@ -1593,7 +1593,7 @@ function renderSectionPage(root, mounts, sec){
   const grid = document.createElement('div');
   grid.className = 'grid-2';
   const lineSeries = {}; ents.forEach(e=> lineSeries[e] = yrs.map(y=>valueFor(e,sec,metric,y) ?? null));
-  const p1 = createChartPanel({ id:'sec-'+sec+'-trend', idx:'01', title:`${metric} — trend`, desc:`${sec} · ${ents.join(' vs ')} across selected periods.`,
+  const p1 = createChartPanel({ id:'sec-'+sec+'-trend', idx:'01', title:`${metric} trend`, desc:`${sec} · ${ents.join(' vs ')} across selected periods.`,
     labels: yrs, seriesMap: lineSeries, defaultType:'line', allowed:ALL_CHART_TYPES, yTitle: metric });
   grid.appendChild(p1.el); mounts.push(p1.mount);
 
@@ -1606,17 +1606,17 @@ function renderSectionPage(root, mounts, sec){
   const grid2 = document.createElement('div');
   grid2.className = 'grid-2';
   const pieSeries = {}; ents.forEach(e=> pieSeries[e] = [valueFor(e,sec,metric,ly) ?? 0]);
-  const p3 = createChartPanel({ id:'sec-'+sec+'-share', idx:'03', title:`Share — ${ly}`, desc:`Proportional split of ${metric.toLowerCase()}.`,
+  const p3 = createChartPanel({ id:'sec-'+sec+'-share', idx:'03', title:`Share ${ly}`, desc:`Proportional split of ${metric.toLowerCase()}.`,
     labels:['Share'], seriesMap: pieSeries, defaultType:'pie', allowed:ALL_CHART_TYPES });
   grid2.appendChild(p3.el); mounts.push(p3.mount);
 
   const rows = metrics.map(m=>({ section:m, metric:'', vals: ents.map(e=>valueFor(e,sec,m,ly)) }));
-  const tablePanel = leaderboardTable(rows, ents, '04', `All metrics in ${sec} — ${ly}`, 'Every tracked metric in this channel, entities compared.');
+  const tablePanel = leaderboardTable(rows, ents, '04', `All metrics in ${sec} ${ly}`, 'Every tracked metric in this channel, entities compared.');
   tablePanel.querySelector('thead').innerHTML = `<tr><th>Metric</th>${ents.map(e=>`<th>${e}</th>`).join('')}<th>Leader</th></tr>`;
   grid2.appendChild(tablePanel);
   root.appendChild(grid2);
 
-  // Individual chart per metric in this channel — every metric gets its own graph,
+  // Individual chart per metric in this channel every metric gets its own graph,
   // not just whichever one is picked in the dropdown above.
   const heading = document.createElement('div');
   heading.className = 'section-heading';
@@ -1647,7 +1647,7 @@ function renderTrends(root, mounts){
   ctrl.className = 'control-row';
   ctrl.innerHTML = `<div class="control-group"><label>Focus metric</label></div>`;
   const sel = document.createElement('select');
-  allPairs.forEach(p=>{ const key=p.sec+'|||'+p.m; const o=document.createElement('option'); o.value=key; o.textContent = `${p.sec} — ${p.m}`; if(key===focusKey) o.selected=true; sel.appendChild(o); });
+  allPairs.forEach(p=>{ const key=p.sec+'|||'+p.m; const o=document.createElement('option'); o.value=key; o.textContent = `${p.sec} ${p.m}`; if(key===focusKey) o.selected=true; sel.appendChild(o); });
   sel.onchange = ()=>{ state.explorer.trendFocus = sel.value; render(); };
   ctrl.querySelector('.control-group').appendChild(sel);
   root.appendChild(ctrl);
@@ -1655,7 +1655,7 @@ function renderTrends(root, mounts){
   const grid = document.createElement('div');
   grid.className = 'grid-2';
   const lineSeries = {}; ents.forEach(e=> lineSeries[e] = yrs.map(y=>valueFor(e,focusSec,focusMetric,y) ?? null));
-  const p1 = createChartPanel({ id:'tr-line', idx:'01', title:`${focusMetric} — full trend`, desc:`${focusSec} · ${ents.join(' vs ')}.`,
+  const p1 = createChartPanel({ id:'tr-line', idx:'01', title:`${focusMetric} full trend`, desc:`${focusSec} · ${ents.join(' vs ')}.`,
     labels: yrs, seriesMap: lineSeries, defaultType:'line', allowed:ALL_CHART_TYPES, yTitle: focusMetric, tall:true });
   grid.appendChild(p1.el); mounts.push(p1.mount);
 
@@ -1745,7 +1745,7 @@ function renderExplorer(root, mounts){
   const pngBtn = document.createElement('button'); pngBtn.className='png-btn'; pngBtn.textContent='⭳ PNG';
   head.appendChild(pngBtn);
   panelWrap.appendChild(head);
-  const desc = document.createElement('div'); desc.className='desc'; desc.textContent = `${sec} · custom visual — pick channel, metric, and chart type above.`;
+  const desc = document.createElement('div'); desc.className='desc'; desc.textContent = `${sec} · custom visual pick channel, metric, and chart type above.`;
   panelWrap.appendChild(desc);
   const cw = document.createElement('div'); cw.className = 'chart-wrap tall';
   const canvas = document.createElement('canvas'); cw.appendChild(canvas); panelWrap.appendChild(cw);
@@ -1759,7 +1759,7 @@ function renderExplorer(root, mounts){
   });
 
   const rows = [{ section: sec, metric, vals: ents.map(e=>valueFor(e,sec,metric,ly)) }];
-  root.appendChild(leaderboardTable(rows, ents, '·', `${metric} — ${ly}`, 'Selected metric snapshot.'));
+  root.appendChild(leaderboardTable(rows, ents, '·', `${metric} ${ly}`, 'Selected metric snapshot.'));
 }
 
 /* ---------- DATA TABLE ---------- */
@@ -1832,7 +1832,7 @@ function currentPageLabel(){
 
 async function exportPageToWord(){
   if(!state.chartInstances.length){ alert('No charts on this page to export. Try Overview, a channel page, Trends, or Explorer.'); return; }
-  if(!window.JSZip){ alert('Word export library did not load (check your internet connection) — try again.'); return; }
+  if(!window.JSZip){ alert('Word export library did not load (check your internet connection) try again.'); return; }
   const pageLabel = currentPageLabel();
   const btn = document.getElementById('exportWordBtn');
   const originalLabel = btn ? btn.textContent : null;
@@ -1840,16 +1840,16 @@ async function exportPageToWord(){
 
   try {
     // Builds a genuine .docx (Office Open XML: a real zip of XML parts), rather than
-    // an HTML-file-renamed-.doc trick — that older approach silently dropped inline
+    // an HTML-file-renamed-.doc trick that older approach silently dropped inline
     // base64 images in Word's HTML import filter. This is the actual native format.
     const zip = new JSZip();
-    const MAX_WIDTH_EMU = 5943600; // 6.5in at 914400 EMU/in — fits inside default page margins
+    const MAX_WIDTH_EMU = 5943600; // 6.5in at 914400 EMU/in fits inside default page margins
     const rels = [`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`];
     const media = zip.folder('word/media');
     let bodyXml = `
 <w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="34"/><w:color w:val="3E0F3C"/></w:rPr><w:t xml:space="preserve">Commercial Bank of Ethiopia</w:t></w:r></w:p>
-<w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:sz w:val="22"/><w:color w:val="5C2159"/></w:rPr><w:t xml:space="preserve">Digital Financial Services Ledger — ${escapeXml(pageLabel)}</w:t></w:r></w:p>
+<w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:sz w:val="22"/><w:color w:val="5C2159"/></w:rPr><w:t xml:space="preserve">Digital Financial Services Ledger ${escapeXml(pageLabel)}</w:t></w:r></w:p>
 <w:p><w:pPr><w:spacing w:after="240"/></w:pPr><w:r><w:rPr><w:sz w:val="17"/><w:color w:val="666666"/></w:rPr><w:t xml:space="preserve">Generated ${escapeXml(new Date().toLocaleString())} · Entities: ${escapeXml(activeEntitiesArr().join(', '))} · Periods: ${escapeXml(activeYearsArr().join(', '))}</w:t></w:r></w:p>`;
 
     state.chartInstances.forEach((c, i)=>{
@@ -1922,7 +1922,7 @@ function escapeXml(str){
 
 function exportPageToPDF(){
   if(!state.chartInstances.length){ alert('No charts on this page to export. Try Overview, a channel page, Trends, or Explorer.'); return; }
-  if(!window.jspdf){ alert('PDF library did not load (check your internet connection) — try again.'); return; }
+  if(!window.jspdf){ alert('PDF library did not load (check your internet connection) try again.'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'landscape', unit:'pt', format:'a4'});
   const pageW = doc.internal.pageSize.getWidth();
@@ -1935,7 +1935,7 @@ function exportPageToPDF(){
     doc.rect(0,0,pageW,54,'F');
     doc.setTextColor(255,255,255);
     doc.setFontSize(14);
-    doc.text('Commercial Bank of Ethiopia — Digital Financial Services Ledger', 24, 24);
+    doc.text('Commercial Bank of Ethiopia Digital Financial Services Ledger', 24, 24);
     doc.setFontSize(10);
     doc.setTextColor(217,199,214);
     doc.text(`${pageLabel} · Generated ${new Date().toLocaleDateString()}`, 24, 40);
