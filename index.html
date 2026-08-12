@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CBE Research Team Digital Ledger BI</title>
+<title>CBE Digital Ledger BI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
   --purple:#3E0F3C; --purple-2:#5C2159; --gold:#C9A24B; --gold-bright:#D9B85C;
@@ -127,6 +128,13 @@ aside.filter-pane{background:var(--surface);border-right:1px solid var(--line);p
 .fp-row .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.15);}
 .fp-mini-btn{font-family:var(--mono);font-size:10px;color:var(--purple);cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;}
 .fp-summary{font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.7;border-top:1px solid var(--line);margin-top:16px;padding-top:12px;}
+.ds-row{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;margin-bottom:2px;border-radius:var(--r);}
+.ds-row:hover{background:var(--paper);}
+.ds-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;font-size:12.5px;color:var(--text);}
+.ds-row.ds-active{background:#FBF6E9;border:1px solid var(--gold);}
+.ds-row.ds-active .ds-name{font-weight:700;color:var(--purple);}
+.ds-remove{background:none;border:none;color:var(--text-dim);font-size:16px;line-height:1;cursor:pointer;padding:0 3px;flex-shrink:0;}
+.ds-remove:hover{color:var(--bad);}
 .reset-btn{width:100%;margin-top:14px;font-family:var(--mono);font-size:11px;padding:8px;border:1px solid var(--line);background:var(--paper);border-radius:var(--r);cursor:pointer;color:var(--text);}
 .reset-btn:hover{border-color:var(--gold);}
 
@@ -343,7 +351,7 @@ function buildLoginScreen(){
     <div class="auth-brand-panel">
       <div class="auth-emblem"></div>
       <h1>Digital Financial Services Ledger</h1>
-      <div class="tagline">Built for the CBE research team to track, compare, and report on digital channel performance CBE against Industry, across every metric.</div>
+      <div class="tagline">Built for the CBE research team to track, compare, and report on digital channel performance — CBE against Industry, across every metric.</div>
       <div class="auth-brand-stats">
         <div><span class="num">7</span><span class="lbl">Digital channels</span></div>
         <div><span class="num">8</span><span class="lbl">Chart types</span></div>
@@ -354,12 +362,14 @@ function buildLoginScreen(){
       <div class="auth-form-inner">
         <div class="mobile-brand"><div class="spiral"></div><span>CBE Digital Ledger BI</span></div>
         <h1>Sign in</h1>
-        <div class="auth-sub">Research team access: enter your credentials to continue</div>
+        <div class="auth-sub">Research team access — enter your credentials to continue</div>
         <div id="loginErr"></div>
         <div class="field"><label>Username</label><input type="text" id="loginUser" autocomplete="username"></div>
         <div class="field"><label>Password</label><input type="password" id="loginPass" autocomplete="current-password"></div>
         <button class="auth-btn" id="loginBtn">Sign In</button>
-              </div>
+        <div class="auth-note">Default admin login: <code>admin</code> / <code>admin123</code>. Admin can create researcher accounts after signing in.<br><br>
+        This is a static site — accounts you create only work everywhere once baked into the code and redeployed (see README, "Security note").</div>
+      </div>
     </div>`;
   setTimeout(()=>{
     const doLogin = async ()=>{
@@ -384,7 +394,7 @@ function buildLoginScreen(){
 }
 
 /* ---------- ADMIN SCREEN ---------- */
-let adminTab = localStorage.getItem('zlx_admin_tab') || 'manage';
+let adminTab = localStorage.getItem('zlx_admin_tab') || 'dash';
 let lastCreatedCredentials = null;
 function buildAdminScreen(session){
   const wrap = document.createElement('div');
@@ -597,13 +607,13 @@ function buildAppScreen(session, embeddedInAdmin){
       <button class="btn ghost" id="exportExcelBtn">Export data → Excel</button>
       <span class="hint" id="fileMeta"></span>
     </div>
+    <nav class="page-tabs" id="pageTabs"></nav>
     <div class="app-shell">
       <aside class="filter-pane" id="filterPane"></aside>
       <main class="canvas" id="pageCanvas">
         <div class="empty-note">Upload a CSV or Excel file to populate the ledger — see the sidebar for accepted formats.</div>
       </main>
     </div>
-    <nav class="page-tabs" id="pageTabs"></nav>
     <footer>COMMERCIAL BANK OF ETHIOPIA · DIGITAL LEDGER BI · static client-side app — no data leaves your browser</footer>`;
   setTimeout(()=>{
     const lb = document.getElementById('logoutBtn');
@@ -616,6 +626,7 @@ function buildAppScreen(session, embeddedInAdmin){
    DASHBOARD STATE
 ========================================================= */
 const state = {
+  datasets: [], activeDatasetId: null,
   records: [], sections: [], metricsBySection: {}, entities: [], years: [],
   activeEntities: new Set(), activeYears: new Set(),
   page: 'overview', chartTypeOverrides: {}, pointStyleOverrides: {}, chartInstances: [],
@@ -746,35 +757,102 @@ function rowsFromWorkbook(ab){
 /* =========================================================
    INGEST
 ========================================================= */
-function ingestRecords(records, fileLabel){
-  if(!records.length){ setStatus(false, 'No usable rows found in file'); return; }
-  state.records = records;
-  state.sections = [...new Set(records.map(r=>r.section))];
-  state.metricsBySection = {};
-  state.sections.forEach(s=>{ state.metricsBySection[s] = [...new Set(records.filter(r=>r.section===s).map(r=>r.metric))]; });
-  state.entities = [...new Set(records.map(r=>r.entity))];
-  state.years = [...new Set(records.map(r=>r.year))].sort();
-  state._colorMap = {};
+// Derives the per-view fields (channels, metrics, entities, periods) from a
+// dataset's raw records. Used whenever we switch which dataset is "active".
+function deriveDatasetView(records){
+  const sections = [...new Set(records.map(r=>r.section))];
+  const metricsBySection = {};
+  sections.forEach(s=>{ metricsBySection[s] = [...new Set(records.filter(r=>r.section===s).map(r=>r.metric))]; });
+  const entities = sortEntitiesCbeFirst([...new Set(records.map(r=>r.entity))]);
+  const years = [...new Set(records.map(r=>r.year))].sort();
+  return {sections, metricsBySection, entities, years};
+}
+// CBE always leads wherever entities are listed — charts, tables, legends, the
+// filter pane — since this is CBE's own reporting tool. Everyone else keeps
+// their original relative order.
+function sortEntitiesCbeFirst(list){
+  return [...list].sort((a,b)=>{
+    const aCbe = String(a).trim().toLowerCase() === 'cbe';
+    const bCbe = String(b).trim().toLowerCase() === 'cbe';
+    if(aCbe && !bCbe) return -1;
+    if(bCbe && !aCbe) return 1;
+    return 0; // stable sort (spec-guaranteed) keeps everyone else's relative order
+  });
+}
+function updateTapeUI(){
+  const te = document.getElementById('tapeEntities'); if(te) te.textContent = state.entities.join(' / ');
+  const tp = document.getElementById('tapePeriods'); if(tp) tp.textContent = state.years.length ? state.years[0]+'–'+state.years[state.years.length-1] : '—';
+  const ts = document.getElementById('tapeSections'); if(ts) ts.textContent = state.sections.length;
+  const tr = document.getElementById('tapeRecords'); if(tr) tr.textContent = state.records.length;
+}
+
+// Makes an already-uploaded dataset (by id) the one being viewed. Filters,
+// chart-type choices, and the active page reset to defaults on switch — same
+// as what happens today when a fresh file is uploaded.
+function activateDataset(id){
+  const ds = state.datasets.find(d=>d.id===id);
+  if(!ds) return;
+  state.activeDatasetId = id;
+  state.records = ds.records;
+  const view = deriveDatasetView(ds.records);
+  state.sections = view.sections;
+  state.metricsBySection = view.metricsBySection;
+  state.entities = view.entities;
+  state.years = view.years;
+  // NOTE: _colorMap is intentionally NOT reset here, so an entity like "CBE" keeps
+  // the same color across every dataset you switch between, not just within one.
   state.entities.forEach(entityColor);
   state.activeEntities = new Set(state.entities);
   state.activeYears = new Set(state.years);
   state.explorer.section = state.sections[0];
   state.explorer.metric = state.metricsBySection[state.explorer.section][0];
+  state.explorer.pointStyle = 'circle';
   state.chartTypeOverrides = {};
   state.pointStyleOverrides = {};
   state.page = 'overview';
   state.dataFilterSection = 'ALL';
-  state.fileLabel = fileLabel || '';
 
-  setStatus(true, `${records.length} records loaded${fileLabel? ' — '+fileLabel: ''}`);
-  const te = document.getElementById('tapeEntities'); if(te) te.textContent = state.entities.join(' / ');
-  const tp = document.getElementById('tapePeriods'); if(tp) tp.textContent = state.years[0]+'–'+state.years[state.years.length-1];
-  const ts = document.getElementById('tapeSections'); if(ts) ts.textContent = state.sections.length;
-  const tr = document.getElementById('tapeRecords'); if(tr) tr.textContent = records.length;
-
+  setStatus(true, `${ds.records.length} records loaded — ${ds.name}`);
+  updateTapeUI();
   buildPageTabs();
   buildFilterPane();
   render();
+}
+
+// Adds a newly uploaded file as a new dataset (previous ones stay loaded) and
+// switches to viewing it.
+function addDataset(records, fileLabel){
+  if(!records.length){ setStatus(false, 'No usable rows found in file'); return; }
+  const id = 'ds_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  const name = fileLabel || `Dataset ${state.datasets.length+1}`;
+  state.datasets.push({id, name, records});
+  activateDataset(id);
+}
+
+// Removes a dataset. If it was the active one, switches to another remaining
+// dataset, or back to the empty state if none are left.
+function removeDataset(id){
+  const idx = state.datasets.findIndex(d=>d.id===id);
+  if(idx===-1) return;
+  const wasActive = state.activeDatasetId === id;
+  state.datasets.splice(idx,1);
+  if(!wasActive){ buildFilterPane(); persistDashboardState(); return; }
+  if(state.datasets.length){
+    activateDataset(state.datasets[0].id);
+  } else {
+    state.activeDatasetId = null;
+    state.records = []; state.sections = []; state.metricsBySection = {}; state.entities = []; state.years = [];
+    state.activeEntities = new Set(); state.activeYears = new Set();
+    state.page = 'overview';
+    setStatus(false, 'Awaiting data');
+    updateTapeUI();
+    const canvas = document.getElementById('pageCanvas');
+    if(canvas) canvas.innerHTML = '<div class="empty-note">Upload a CSV or Excel file to populate the ledger — see the sidebar for accepted formats.</div>';
+    const tabs = document.getElementById('pageTabs'); if(tabs) tabs.innerHTML = '';
+    const fm = document.getElementById('fileMeta'); if(fm) fm.textContent = '';
+    buildFilterPane();
+    localStorage.removeItem(LS_DASHBOARD);
+  }
 }
 function setStatus(ok, msg){
   const pill = document.getElementById('statusPill');
@@ -790,8 +868,30 @@ function buildFilterPane(){
   const pane = document.getElementById('filterPane');
   if(!pane) return;
   pane.innerHTML = '';
+
+  if(state.datasets.length){
+    const dsLabel = document.createElement('div');
+    dsLabel.className = 'fp-label'; dsLabel.innerHTML = '<span>Datasets</span>';
+    pane.appendChild(dsLabel);
+    state.datasets.forEach(ds=>{
+      const row = document.createElement('div');
+      row.className = 'ds-row' + (ds.id===state.activeDatasetId ? ' ds-active' : '');
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'ds-name';
+      nameSpan.textContent = ds.name;
+      nameSpan.title = 'Switch to ' + ds.name;
+      nameSpan.onclick = ()=>{ if(ds.id !== state.activeDatasetId) activateDataset(ds.id); };
+      row.appendChild(nameSpan);
+      const rmBtn = document.createElement('button');
+      rmBtn.className = 'ds-remove'; rmBtn.textContent = '×'; rmBtn.title = 'Remove this dataset';
+      rmBtn.onclick = (e)=>{ e.stopPropagation(); removeDataset(ds.id); };
+      row.appendChild(rmBtn);
+      pane.appendChild(row);
+    });
+  }
+
   const entLabel = document.createElement('div');
-  entLabel.className = 'fp-label'; entLabel.innerHTML = '<span>Entities (min. 2)</span>';
+  entLabel.className = 'fp-label'; entLabel.innerHTML = '<span>Entities</span>';
   pane.appendChild(entLabel);
   state.entities.forEach(ent=>{
     const row = document.createElement('label');
@@ -799,7 +899,7 @@ function buildFilterPane(){
     const cb = document.createElement('input');
     cb.type = 'checkbox'; cb.checked = state.activeEntities.has(ent);
     cb.onchange = ()=>{
-      if(!cb.checked && state.activeEntities.size <= 2){ cb.checked = true; return; }
+      if(!cb.checked && state.activeEntities.size <= 1){ cb.checked = true; return; }
       if(cb.checked) state.activeEntities.add(ent); else state.activeEntities.delete(ent);
       render();
     };
@@ -1332,9 +1432,10 @@ function render(){
 const LS_DASHBOARD = 'zlx_dashboard_state';
 function persistDashboardState(){
   try{
-    if(!state.records.length) return;
+    if(!state.datasets.length) return;
     const snapshot = {
-      records: state.records,
+      datasets: state.datasets,
+      activeDatasetId: state.activeDatasetId,
       page: state.page,
       activeEntities: [...state.activeEntities],
       activeYears: [...state.activeYears],
@@ -1342,33 +1443,38 @@ function persistDashboardState(){
       pointStyleOverrides: state.pointStyleOverrides,
       dataFilterSection: state.dataFilterSection,
       explorer: state.explorer,
-      sortState: state.sortState,
-      fileLabel: state.fileLabel || ''
+      sortState: state.sortState
     };
     localStorage.setItem(LS_DASHBOARD, JSON.stringify(snapshot));
   }catch(e){ /* storage full or unavailable — persistence is a convenience, not critical */ }
 }
 
-// Restores an uploaded dataset (and where you were: page, filters, chart types)
-// after a refresh. Returns true if there was something to restore.
+// Restores every uploaded dataset (and where you were: which one was active,
+// page, filters, chart types) after a refresh. Returns true if there was
+// something to restore.
 function restoreDashboardState(){
   try{
     const raw = localStorage.getItem(LS_DASHBOARD);
     if(!raw) return false;
     const snap = JSON.parse(raw);
-    if(!snap.records || !snap.records.length) return false;
+    if(!snap.datasets || !snap.datasets.length) return false;
 
-    state.records = snap.records;
-    state.sections = [...new Set(snap.records.map(r=>r.section))];
-    state.metricsBySection = {};
-    state.sections.forEach(s=>{ state.metricsBySection[s] = [...new Set(snap.records.filter(r=>r.section===s).map(r=>r.metric))]; });
-    state.entities = [...new Set(snap.records.map(r=>r.entity))];
-    state.years = [...new Set(snap.records.map(r=>r.year))].sort();
-    state._colorMap = {};
+    state.datasets = snap.datasets;
+    const activeId = (snap.activeDatasetId && state.datasets.some(d=>d.id===snap.activeDatasetId))
+      ? snap.activeDatasetId : state.datasets[0].id;
+    state.activeDatasetId = activeId;
+    const ds = state.datasets.find(d=>d.id===activeId);
+
+    state.records = ds.records;
+    const view = deriveDatasetView(ds.records);
+    state.sections = view.sections;
+    state.metricsBySection = view.metricsBySection;
+    state.entities = view.entities;
+    state.years = view.years;
     state.entities.forEach(entityColor);
 
     const savedEntities = (snap.activeEntities || []).filter(e=>state.entities.includes(e));
-    state.activeEntities = new Set(savedEntities.length >= 2 ? savedEntities : state.entities);
+    state.activeEntities = new Set(savedEntities.length >= 1 ? savedEntities : state.entities);
     const savedYears = (snap.activeYears || []).filter(y=>state.years.includes(y));
     state.activeYears = new Set(savedYears.length ? savedYears : state.years);
 
@@ -1376,7 +1482,6 @@ function restoreDashboardState(){
     state.pointStyleOverrides = snap.pointStyleOverrides || {};
     state.dataFilterSection = snap.dataFilterSection || 'ALL';
     state.sortState = snap.sortState || { data: { col:'year', dir:'asc' } };
-    state.fileLabel = snap.fileLabel || '';
 
     const fallbackSection = state.sections[0];
     state.explorer = snap.explorer && state.sections.includes(snap.explorer.section)
@@ -1387,12 +1492,9 @@ function restoreDashboardState(){
       || (snap.page && snap.page.startsWith('sec:') && state.sections.includes(snap.page.slice(4)));
     state.page = validPage ? snap.page : 'overview';
 
-    setStatus(true, `${state.records.length} records restored from your last session${state.fileLabel ? ' — '+state.fileLabel : ''}`);
-    const te = document.getElementById('tapeEntities'); if(te) te.textContent = state.entities.join(' / ');
-    const tp = document.getElementById('tapePeriods'); if(tp) tp.textContent = state.years[0]+'–'+state.years[state.years.length-1];
-    const ts = document.getElementById('tapeSections'); if(ts) ts.textContent = state.sections.length;
-    const tr = document.getElementById('tapeRecords'); if(tr) tr.textContent = state.records.length;
-    const fm = document.getElementById('fileMeta'); if(fm) fm.textContent = state.fileLabel ? state.fileLabel + ' (restored)' : '';
+    setStatus(true, `${state.records.length} records restored from your last session — ${ds.name}`);
+    updateTapeUI();
+    const fm = document.getElementById('fileMeta'); if(fm) fm.textContent = ds.name + ' (restored)';
 
     buildPageTabs();
     buildFilterPane();
@@ -1725,29 +1827,94 @@ function currentPageLabel(){
   return 'Report';
 }
 
-function exportPageToWord(){
+async function exportPageToWord(){
   if(!state.chartInstances.length){ alert('No charts on this page to export. Try Overview, a channel page, Trends, or Explorer.'); return; }
+  if(!window.JSZip){ alert('Word export library did not load (check your internet connection) — try again.'); return; }
   const pageLabel = currentPageLabel();
-  let body = `
-    <div style="font-family:Calibri,Arial,sans-serif;">
-      <div style="background:#3E0F3C;color:#fff;padding:18px 22px;">
-        <h1 style="margin:0;font-size:20px;">Commercial Bank of Ethiopia</h1>
-        <div style="font-size:13px;color:#D9C7D6;">Digital Financial Services Ledger — ${pageLabel}</div>
-      </div>
-      <div style="padding:20px 4px;font-size:11px;color:#555;">Generated ${new Date().toLocaleString()} · Entities: ${activeEntitiesArr().join(', ')} · Periods: ${activeYearsArr().join(', ')}</div>`;
-  state.chartInstances.forEach((c,i)=>{
-    const img = c.chart.toBase64Image('image/png', 1);
-    body += `<h2 style="color:#3E0F3C;font-size:15px;border-bottom:2px solid #C9A24B;padding-bottom:4px;">${i+1}. ${c.title}</h2>
-      <img src="${img}" style="width:100%;max-width:920px;margin-bottom:22px;" />`;
-  });
-  body += '</div>';
-  const htmlDoc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-    <head><meta charset="utf-8"><title>${pageLabel}</title></head><body>${body}</body></html>`;
-  const blob = new Blob(['\ufeff', htmlDoc], {type:'application/msword'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `CBE_Digital_Ledger_${pageLabel.replace(/\s+/g,'_')}.doc`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  const btn = document.getElementById('exportWordBtn');
+  const originalLabel = btn ? btn.textContent : null;
+  if(btn){ btn.disabled = true; btn.textContent = 'Building…'; }
+
+  try {
+    // Builds a genuine .docx (Office Open XML: a real zip of XML parts), rather than
+    // an HTML-file-renamed-.doc trick — that older approach silently dropped inline
+    // base64 images in Word's HTML import filter. This is the actual native format.
+    const zip = new JSZip();
+    const MAX_WIDTH_EMU = 5943600; // 6.5in at 914400 EMU/in — fits inside default page margins
+    const rels = [`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`];
+    const media = zip.folder('word/media');
+    let bodyXml = `
+<w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="34"/><w:color w:val="3E0F3C"/></w:rPr><w:t xml:space="preserve">Commercial Bank of Ethiopia</w:t></w:r></w:p>
+<w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:sz w:val="22"/><w:color w:val="5C2159"/></w:rPr><w:t xml:space="preserve">Digital Financial Services Ledger — ${escapeXml(pageLabel)}</w:t></w:r></w:p>
+<w:p><w:pPr><w:spacing w:after="240"/></w:pPr><w:r><w:rPr><w:sz w:val="17"/><w:color w:val="666666"/></w:rPr><w:t xml:space="preserve">Generated ${escapeXml(new Date().toLocaleString())} · Entities: ${escapeXml(activeEntitiesArr().join(', '))} · Periods: ${escapeXml(activeYearsArr().join(', '))}</w:t></w:r></w:p>`;
+
+    state.chartInstances.forEach((c, i)=>{
+      const dataUrl = c.chart.toBase64Image('image/png', 1);
+      const base64 = dataUrl.split(',')[1] || '';
+      media.file(`image${i}.png`, base64, {base64:true});
+      const rid = `rIdImg${i}`;
+      rels.push(`  <Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image${i}.png"/>`);
+
+      const nativeW = c.chart.width || 800, nativeH = c.chart.height || 400;
+      let emuW = nativeW * 9525, emuH = nativeH * 9525;
+      if(emuW > MAX_WIDTH_EMU){ const ratio = MAX_WIDTH_EMU/emuW; emuW = MAX_WIDTH_EMU; emuH = Math.round(emuH*ratio); }
+
+      bodyXml += `
+<w:p><w:pPr><w:spacing w:before="200" w:after="80"/><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="4" w:color="C9A24B"/></w:pBdr></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="24"/><w:color w:val="3E0F3C"/></w:rPr><w:t xml:space="preserve">${i+1}. ${escapeXml(c.title)}</w:t></w:r></w:p>
+<w:p><w:r><w:drawing>
+  <wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+    <wp:extent cx="${emuW}" cy="${emuH}"/>
+    <wp:docPr id="${i+1}" name="Chart${i+1}"/>
+    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+      <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+        <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+          <pic:nvPicPr><pic:cNvPr id="${i+1}" name="Chart${i+1}"/><pic:cNvPicPr/></pic:nvPicPr>
+          <pic:blipFill><a:blip r:embed="${rid}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>
+          <pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${emuW}" cy="${emuH}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>
+        </pic:pic>
+      </a:graphicData>
+    </a:graphic>
+  </wp:inline>
+</w:drawing></w:r></w:p>`;
+    });
+    rels.push('</Relationships>');
+
+    zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="png" ContentType="image/png"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+    zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+    zip.file('word/_rels/document.xml.rels', rels.join('\n'));
+    zip.file('word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+  xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+  xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <w:body>${bodyXml}
+    <w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>
+  </w:body>
+</w:document>`);
+
+    const blob = await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `CBE_Digital_Ledger_${pageLabel.replace(/\s+/g,'_')}.docx`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  } catch(e){
+    alert('Word export failed: ' + e.message);
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
+  }
+}
+function escapeXml(str){
+  return String(str).replace(/[<>&'"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[c]));
 }
 
 function exportPageToPDF(){
@@ -1809,11 +1976,11 @@ function handleFile(file){
   const name = file.name.toLowerCase();
   if(name.endsWith('.csv')){
     const reader = new FileReader();
-    reader.onload = e=>{ try{ ingestRecords(parseRowsToRecords(rowsFromCSVText(e.target.result)), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
+    reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromCSVText(e.target.result)), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
     reader.readAsText(file);
   } else {
     const reader = new FileReader();
-    reader.onload = e=>{ try{ ingestRecords(parseRowsToRecords(rowsFromWorkbook(e.target.result)), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
+    reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromWorkbook(e.target.result)), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
     reader.readAsArrayBuffer(file);
   }
 }
