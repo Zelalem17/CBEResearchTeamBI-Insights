@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CBE Vantage</title>
+<title>CBE Data Insight</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -149,6 +149,15 @@ aside.filter-pane{background:var(--surface);border-right:1px solid var(--line);p
 .fp-row{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:5px 0;cursor:pointer;user-select:none;}
 .fp-row input{accent-color:var(--gold);}
 .fp-row .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.15);}
+.fp-drag-hint{font-size:10px;color:var(--text-dim);line-height:1.5;margin-bottom:6px;}
+.entity-row{display:flex;align-items:center;gap:6px;padding:4px 4px;border-radius:var(--r);cursor:grab;border:1px dashed transparent;}
+.entity-row:hover{background:var(--paper);}
+.entity-row.dragging{opacity:.4;cursor:grabbing;}
+.entity-row.drag-over{border-top-color:var(--gold);background:#FBF6E9;}
+.entity-row.drag-over-after{border-bottom-color:var(--gold);background:#FBF6E9;}
+.entity-row .drag-handle{color:var(--text-dim);font-size:12px;line-height:1;flex-shrink:0;cursor:grab;}
+.entity-row .entity-label{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;user-select:none;flex:1;min-width:0;}
+.entity-row .entity-label input{accent-color:var(--gold);flex-shrink:0;}
 .fp-mini-btn{font-family:var(--mono);font-size:10px;color:var(--purple);cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;}
 .fp-summary{font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.7;border-top:1px solid var(--line);margin-top:16px;padding-top:12px;}
 .ds-row{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;margin-bottom:2px;border-radius:var(--r);}
@@ -255,7 +264,7 @@ const LS_ADMIN = 'zlx_admin', LS_RESEARCHERS = 'zlx_researchers', LS_SESSION = '
 // push to GitHub. The password below is never shown anywhere in the UI — only
 // its one-way hash lives here, so this file can be committed to a public repo
 // without exposing the actual password.
-const BUILT_IN_ADMIN = { username: "admin", passwordHash: "67a20ef9ca16dac572541eaa76e742683bf3785db5e52c5ae9a11d29e794e088" };
+const BUILT_IN_ADMIN = { username: "admin", passwordHash: "2bfd2e2c38a27395d7b668caca6583202866d590f46700f87088c4a5c97a3f53" };
 const BUILT_IN_RESEARCHERS = [
   // { name: "Aster Bekele", username: "aster", passwordHash: "…sha-256 hex…" },
 ];
@@ -462,7 +471,7 @@ function buildAdminScreen(session){
   wrap.innerHTML = `
     <header class="app-head">
       <div class="head-row">
-        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Vantage</h1><div class="sub">Admin console</div></div></div>
+        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Data Insight</h1><div class="sub">Admin console</div></div></div>
         <div class="who-row"><span class="who-pill">${session.name} · Admin</span><button class="logout-btn" id="logoutBtn">Log out</button></div>
       </div>
     </header>
@@ -646,7 +655,7 @@ function buildAppScreen(session, embeddedInAdmin){
     ${embeddedInAdmin ? '' : `
     <header class="app-head">
       <div class="head-row">
-        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Vantage</h1><div class="sub">Digital financial services — CBE vs Industry</div></div></div>
+        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Data Insight</h1><div class="sub">Digital financial services — CBE vs Industry</div></div></div>
         <div class="who-row"><span class="who-pill">${session.name} · ${session.role==='admin'?'Admin':'Researcher'}</span><button class="logout-btn" id="logoutBtn">Log out</button></div>
       </div>
       <div class="ledger-tape">
@@ -675,7 +684,7 @@ function buildAppScreen(session, embeddedInAdmin){
         <div class="empty-note">Upload a CSV or Excel file to populate the ledger — see the sidebar for accepted formats.</div>
       </main>
     </div>
-    <footer>COMMERCIAL BANK OF ETHIOPIA · CBE VANTAGE · static client-side app — no data leaves your browser</footer>`;
+    <footer>COMMERCIAL BANK OF ETHIOPIA · CBE Data Insight · static client-side app — no data leaves your browser</footer>`;
   setTimeout(()=>{
     const lb = document.getElementById('logoutBtn');
     if(lb) lb.onclick = ()=>{ clearSession(); renderRoot(); };
@@ -688,7 +697,7 @@ function buildAppScreen(session, embeddedInAdmin){
 ========================================================= */
 const state = {
   datasets: [], activeDatasetId: null,
-  records: [], sections: [], metricsBySection: {}, entities: [], years: [],
+  records: [], sections: [], metricsBySection: {}, entities: [], entityOrder: [], years: [],
   activeEntities: new Set(), activeYears: new Set(),
   page: 'overview', chartTypeOverrides: {}, pointStyleOverrides: {}, chartInstances: [],
   explorer: { section:null, metric:null, type:'bar', pointStyle:'circle' },
@@ -854,6 +863,7 @@ function activateDataset(id){
   state.sections = view.sections;
   state.metricsBySection = view.metricsBySection;
   state.entities = view.entities;
+  state.entityOrder = [...view.entities]; // default order: CBE-first (from deriveDatasetView); researchers can drag to customize
   state.years = view.years;
   // NOTE: _colorMap is intentionally NOT reset here, so an entity like "CBE" keeps
   // the same color across every dataset you switch between, not just within one.
@@ -949,9 +959,23 @@ function buildFilterPane(){
   const entLabel = document.createElement('div');
   entLabel.className = 'fp-label'; entLabel.innerHTML = '<span>Entities</span>';
   pane.appendChild(entLabel);
-  state.entities.forEach(ent=>{
-    const row = document.createElement('label');
-    row.className = 'fp-row';
+  const entHint = document.createElement('div');
+  entHint.className = 'fp-drag-hint'; entHint.textContent = 'Drag to reorder — order here matches the order shown in every graph.';
+  pane.appendChild(entHint);
+
+  let draggedEntity = null;
+  if(!state.entityOrder || !state.entityOrder.length) state.entityOrder = [...state.entities];
+  state.entityOrder.forEach(ent=>{
+    const row = document.createElement('div');
+    row.className = 'fp-row entity-row';
+    row.draggable = true;
+
+    const handle = document.createElement('span');
+    handle.className = 'drag-handle'; handle.textContent = '⠿'; handle.title = 'Drag to reorder';
+    row.appendChild(handle);
+
+    const label = document.createElement('label');
+    label.className = 'entity-label';
     const cb = document.createElement('input');
     cb.type = 'checkbox'; cb.checked = state.activeEntities.has(ent);
     cb.onchange = ()=>{
@@ -959,10 +983,44 @@ function buildFilterPane(){
       if(cb.checked) state.activeEntities.add(ent); else state.activeEntities.delete(ent);
       render();
     };
-    row.appendChild(cb);
+    label.appendChild(cb);
     const dot = document.createElement('span'); dot.className='dot'; dot.style.background = entityColor(ent);
-    row.appendChild(dot);
-    row.appendChild(document.createTextNode(ent));
+    label.appendChild(dot);
+    label.appendChild(document.createTextNode(ent));
+    row.appendChild(label);
+
+    row.addEventListener('dragstart', ()=>{
+      draggedEntity = ent;
+      row.classList.add('dragging');
+    });
+    row.addEventListener('dragend', ()=>{
+      row.classList.remove('dragging');
+      [...pane.querySelectorAll('.entity-row')].forEach(r=>{ r.classList.remove('drag-over','drag-over-after'); });
+    });
+    row.addEventListener('dragover', (e)=>{
+      e.preventDefault();
+      const rect = row.getBoundingClientRect();
+      const dropAfter = e.clientY > rect.top + rect.height/2;
+      row.classList.toggle('drag-over', !dropAfter);
+      row.classList.toggle('drag-over-after', dropAfter);
+      row.dataset.dropAfter = dropAfter ? '1' : '0';
+    });
+    row.addEventListener('dragleave', ()=>{ row.classList.remove('drag-over','drag-over-after'); });
+    row.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      row.classList.remove('drag-over','drag-over-after');
+      if(!draggedEntity || draggedEntity === ent) return;
+      const order = state.entityOrder.filter(x=>x!==draggedEntity);
+      let targetIdx = order.indexOf(ent);
+      if(row.dataset.dropAfter === '1') targetIdx += 1;
+      order.splice(targetIdx, 0, draggedEntity);
+      state.entityOrder = order;
+      draggedEntity = null;
+      buildFilterPane();
+      render();
+      persistDashboardState();
+    });
+
     pane.appendChild(row);
   });
 
@@ -1021,7 +1079,7 @@ function buildPageTabs(){
 /* =========================================================
    DATA HELPERS
 ========================================================= */
-function activeEntitiesArr(){ return state.entities.filter(e=>state.activeEntities.has(e)); }
+function activeEntitiesArr(){ return state.entityOrder.filter(e=>state.activeEntities.has(e)); }
 function activeYearsArr(){ return state.years.filter(y=>state.activeYears.has(y)); }
 function latestYear(){ const ys = activeYearsArr(); return ys[ys.length-1]; }
 function prevYear(){ const ys = activeYearsArr(); return ys.length>1 ? ys[ys.length-2] : null; }
@@ -1495,6 +1553,7 @@ function persistDashboardState(){
       page: state.page,
       activeEntities: [...state.activeEntities],
       activeYears: [...state.activeYears],
+      entityOrder: state.entityOrder,
       chartTypeOverrides: state.chartTypeOverrides,
       pointStyleOverrides: state.pointStyleOverrides,
       dataFilterSection: state.dataFilterSection,
@@ -1528,6 +1587,12 @@ function restoreDashboardState(){
     state.entities = view.entities;
     state.years = view.years;
     state.entities.forEach(entityColor);
+
+    // Restore the researcher's custom drag order if present, dropping any entities
+    // that no longer exist and appending any new ones (in default order) at the end.
+    const savedOrder = (snap.entityOrder || []).filter(e=>state.entities.includes(e));
+    const missingFromOrder = state.entities.filter(e=>!savedOrder.includes(e));
+    state.entityOrder = savedOrder.length ? [...savedOrder, ...missingFromOrder] : [...state.entities];
 
     const savedEntities = (snap.activeEntities || []).filter(e=>state.entities.includes(e));
     state.activeEntities = new Set(savedEntities.length >= 1 ? savedEntities : state.entities);
