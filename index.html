@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CBE Data Insight</title>
+<title>CBE Vantage</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -264,9 +264,8 @@ const LS_ADMIN = 'zlx_admin', LS_RESEARCHERS = 'zlx_researchers', LS_SESSION = '
 // push to GitHub. The password below is never shown anywhere in the UI — only
 // its one-way hash lives here, so this file can be committed to a public repo
 // without exposing the actual password.
-const BUILT_IN_ADMIN = { username: "admin", passwordHash: "2bfd2e2c38a27395d7b668caca6583202866d590f46700f87088c4a5c97a3f53" };
-const BUILT_IN_RESEARCHERS = [ 
-  { name: "Zelalem Belay", username: "zola", passwordHash: "67a20ef9ca16dac572541eaa76e742683bf3785db5e52c5ae9a11d29e794e088" }
+const BUILT_IN_ADMIN = { username: "admin", passwordHash: "67a20ef9ca16dac572541eaa76e742683bf3785db5e52c5ae9a11d29e794e088" };
+const BUILT_IN_RESEARCHERS = [
   // { name: "Aster Bekele", username: "aster", passwordHash: "…sha-256 hex…" },
 ];
 
@@ -472,14 +471,8 @@ function buildAdminScreen(session){
   wrap.innerHTML = `
     <header class="app-head">
       <div class="head-row">
-           <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Data Insight</h1><div class="sub">Digital financial services — CBE vs Industry</div></div></div>
+        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Vantage</h1><div class="sub">Admin console</div></div></div>
         <div class="who-row"><span class="who-pill">${session.name} · Admin</span><button class="logout-btn" id="logoutBtn">Log out</button></div>
-      </div>
-       <div class="ledger-tape">
-        <span>ENTITIES <b id="tapeEntities">—</b></span>
-        <span>PERIODS <b id="tapePeriods">—</b></span>
-        <span>CHANNELS <b id="tapeSections">—</b></span>
-        <span>RECORDS <b id="tapeRecords">—</b></span>
       </div>
     </header>
     <div class="admin-tabs-bar">
@@ -659,10 +652,10 @@ function buildManageResearchers(){
 function buildAppScreen(session, embeddedInAdmin){
   const wrap = document.createElement('div');
   wrap.innerHTML = `
-  ${embeddedInAdmin ? '' : `
+    ${embeddedInAdmin ? '' : `
     <header class="app-head">
       <div class="head-row">
-        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Data Insight</h1><div class="sub">Digital financial services — CBE vs Industry</div></div></div>
+        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Vantage</h1><div class="sub">Digital financial services — CBE vs Industry</div></div></div>
         <div class="who-row"><span class="who-pill">${session.name} · ${session.role==='admin'?'Admin':'Researcher'}</span><button class="logout-btn" id="logoutBtn">Log out</button></div>
       </div>
       <div class="ledger-tape">
@@ -671,7 +664,6 @@ function buildAppScreen(session, embeddedInAdmin){
         <span>CHANNELS <b id="tapeSections">—</b></span>
         <span>RECORDS <b id="tapeRecords">—</b></span>
       </div>
-    
     </header>`}
     <div class="toolbar">
       <label class="upload-zone" id="dropZone">
@@ -692,7 +684,7 @@ function buildAppScreen(session, embeddedInAdmin){
         <div class="empty-note">Upload a CSV or Excel file to populate the ledger — see the sidebar for accepted formats.</div>
       </main>
     </div>
-    <footer>COMMERCIAL BANK OF ETHIOPIA · CBE Data Insight · static client-side app — no data leaves your browser</footer>`;
+    <footer>COMMERCIAL BANK OF ETHIOPIA · CBE VANTAGE · static client-side app — no data leaves your browser</footer>`;
   setTimeout(()=>{
     const lb = document.getElementById('logoutBtn');
     if(lb) lb.onclick = ()=>{ clearSession(); renderRoot(); };
@@ -763,7 +755,70 @@ function wrapLabel(str, maxLen){
 /* =========================================================
    PARSING (wide banking layout OR long tidy format)
 ========================================================= */
-function parseRowsToRecords(rows){
+// Recognizes tokens like "2020", "2019/20", "2019-2020", "Q1 2023" as period labels.
+function isPeriodLikeToken(tok){
+  if(tok===null || tok===undefined) return false;
+  const s = String(tok).trim();
+  if(!s) return false;
+  return /^(19|20)\d{2}([\/\-](19|20)?\d{2,4})?$/.test(s)
+      || /^(Q[1-4]|H[1-2])[\s\-\/]?(19|20)\d{2}$/i.test(s);
+}
+
+// Detects a simple "entity rows × period columns" matrix — e.g. a bank-name
+// column followed by one column per year, with a single implied metric (often
+// named by a title row above the header, like a merged "Total Deposits in
+// Millions (Birr)" cell). Common shape for a plain cross-tab export that isn't
+// built around this app's channel/metric structure at all.
+function detectEntityPeriodMatrix(rows){
+  const scanLimit = Math.min(rows.length, 6);
+  for(let r=0; r<scanLimit; r++){
+    const row = rows[r];
+    const col0 = row[0];
+    if(col0===null || col0===undefined || String(col0).trim()==='') continue;
+    if(String(col0).trim()!=='' && !isNaN(Number(String(col0).trim()))) continue; // col0 must be a text label, not a bare number
+    const rest = row.slice(1).filter(c=>c!==null && c!==undefined && String(c).trim()!=='');
+    if(rest.length < 2) continue; // need at least 2 period columns to be confident this is a header row
+    const periodLike = rest.filter(isPeriodLikeToken).length;
+    if(periodLike / rest.length >= 0.6){
+      let titleText = '';
+      for(let t=0; t<r; t++){
+        const nonEmpty = rows[t].filter(c=>c!==null && c!==undefined && String(c).trim()!=='');
+        if(nonEmpty.length===1) titleText = String(nonEmpty[0]).trim(); // a lone-cell row above the header reads as a report title
+      }
+      const periodCols = row.map((c,i)=> i>0 && isPeriodLikeToken(c) ? i : -1).filter(i=>i>=0);
+      return { headerRowIdx: r, periodCols, titleText };
+    }
+  }
+  return null;
+}
+
+function parseEntityPeriodMatrix(rows, detection, fileLabel){
+  const { headerRowIdx, periodCols, titleText } = detection;
+  const headerRow = rows[headerRowIdx];
+  let fullTitle = titleText || (fileLabel ? fileLabel.replace(/\.[^.]+$/, '').trim() : '') || 'Value';
+  let shortSection = fullTitle.replace(/\s*\(.*$/, '').replace(/\s+in\s+Millions.*$/i, '').trim();
+  if(!shortSection) shortSection = fullTitle;
+
+  const out = [];
+  for(let r = headerRowIdx+1; r < rows.length; r++){
+    const row = rows[r];
+    const entityRaw = row[0];
+    if(entityRaw===null || entityRaw===undefined || String(entityRaw).trim()==='') continue;
+    const entity = String(entityRaw).trim();
+    if(!isNaN(Number(entity))) continue; // defensive: skip stray numeric-only rows
+    periodCols.forEach(colIdx=>{
+      const label = String(headerRow[colIdx]).trim();
+      const raw = row[colIdx];
+      if(raw===null || raw===undefined || String(raw).trim()==='') return;
+      const value = parseFloat(String(raw).replace(/,/g,''));
+      if(Number.isNaN(value)) return;
+      out.push({ year: label, entity, section: shortSection, metric: fullTitle, value });
+    });
+  }
+  return out;
+}
+
+function parseRowsToRecords(rows, fileLabel){
   rows = rows.filter(r => r.some(c => c !== null && c !== undefined && String(c).trim() !== ''));
   if(rows.length < 2) return [];
   const header0 = rows[0].map(c => (c==null) ? '' : String(c).trim());
@@ -783,6 +838,13 @@ function parseRowsToRecords(rows){
     }
     return out;
   }
+
+  const matrixDetection = detectEntityPeriodMatrix(rows);
+  if(matrixDetection){
+    const matrixRecords = parseEntityPeriodMatrix(rows, matrixDetection, fileLabel);
+    if(matrixRecords.length) return matrixRecords;
+  }
+
   const header1 = (rows[1]||[]).map(c => (c==null) ? '' : String(c).trim());
   const sectionOf = [];
   let lastSec = '';
@@ -2105,11 +2167,11 @@ function handleFile(file){
   const name = file.name.toLowerCase();
   if(name.endsWith('.csv')){
     const reader = new FileReader();
-    reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromCSVText(e.target.result)), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
+    reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromCSVText(e.target.result), file.name), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
     reader.readAsText(file);
   } else {
     const reader = new FileReader();
-    reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromWorkbook(e.target.result)), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
+    reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromWorkbook(e.target.result), file.name), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
     reader.readAsArrayBuffer(file);
   }
 }
