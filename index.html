@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CBE Vantage</title>
+<title>CBE Research BI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -471,7 +471,7 @@ function buildAdminScreen(session){
   wrap.innerHTML = `
     <header class="app-head">
       <div class="head-row">
-        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Vantage</h1><div class="sub">Admin console</div></div></div>
+        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Research BI</h1><div class="sub">Admin console</div></div></div>
         <div class="who-row"><span class="who-pill">${session.name} · Admin</span><button class="logout-btn" id="logoutBtn">Log out</button></div>
       </div>
     </header>
@@ -655,7 +655,7 @@ function buildAppScreen(session, embeddedInAdmin){
     ${embeddedInAdmin ? '' : `
     <header class="app-head">
       <div class="head-row">
-        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Vantage</h1><div class="sub">Digital financial services — CBE vs Industry</div></div></div>
+        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Research BI</h1><div class="sub">Digital financial services — CBE vs Industry</div></div></div>
         <div class="who-row"><span class="who-pill">${session.name} · ${session.role==='admin'?'Admin':'Researcher'}</span><button class="logout-btn" id="logoutBtn">Log out</button></div>
       </div>
       <div class="ledger-tape">
@@ -684,7 +684,7 @@ function buildAppScreen(session, embeddedInAdmin){
         <div class="empty-note">Upload a CSV or Excel file to populate the ledger — see the sidebar for accepted formats.</div>
       </main>
     </div>
-    <footer>COMMERCIAL BANK OF ETHIOPIA · CBE VANTAGE · static client-side app — no data leaves your browser</footer>`;
+    <footer>COMMERCIAL BANK OF ETHIOPIA · CBE Research BI · static client-side app — no data leaves your browser</footer>`;
   setTimeout(()=>{
     const lb = document.getElementById('logoutBtn');
     if(lb) lb.onclick = ()=>{ clearSession(); renderRoot(); };
