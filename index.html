@@ -6,11 +6,79 @@
 <title>CBE Research BI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+/* ============================================================
+   Resilient library loader.
+   Some corporate/organization networks block cdnjs.cloudflare.com
+   specifically. Instead of a single <script src="..."> tag (which
+   fails silently and produces errors like "XLSX is not defined"),
+   we try several CDN mirrors in sequence and track load status in
+   window.__libStatus so the app can show a clear message instead
+   of crashing when a library never loads.
+
+   To run fully offline / bypass network restrictions entirely,
+   download each file below and place it in a local "vendor/"
+   folder next to this HTML file, then replace the arrays below
+   with a single local path, e.g. ["vendor/xlsx.full.min.js"].
+============================================================ */
+window.__libStatus = {};
+window.__libsReady = (function(){
+  function loadScript(name, urls, isLoaded){
+    return new Promise(function(resolve){
+      var i = 0;
+      function tryNext(){
+        if(i >= urls.length){
+          window.__libStatus[name] = false;
+          console.warn('[lib-loader] All sources failed for ' + name + '. Likely blocked by network/firewall/ad-blocker.');
+          resolve(false);
+          return;
+        }
+        var url = urls[i++];
+        var s = document.createElement('script');
+        s.src = url;
+        s.onload = function(){
+          if(!isLoaded || isLoaded()){
+            window.__libStatus[name] = true;
+            resolve(true);
+          } else {
+            tryNext();
+          }
+        };
+        s.onerror = tryNext;
+        document.head.appendChild(s);
+      }
+      tryNext();
+    });
+  }
+  return Promise.all([
+    loadScript('XLSX', [
+      'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+      'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+      'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+    ], function(){ return typeof XLSX !== 'undefined'; }),
+    loadScript('Papa', [
+      'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+      'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
+      'https://unpkg.com/papaparse@5.4.1/papaparse.min.js'
+    ], function(){ return typeof Papa !== 'undefined'; }),
+    loadScript('Chart', [
+      'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js',
+      'https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js',
+      'https://unpkg.com/chart.js@4.5.0/dist/chart.umd.min.js'
+    ], function(){ return typeof Chart !== 'undefined'; }),
+    loadScript('jsPDF', [
+      'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+      'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
+      'https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'
+    ], function(){ return !!window.jspdf; }),
+    loadScript('JSZip', [
+      'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+      'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',
+      'https://unpkg.com/jszip@3.10.1/dist/jszip.min.js'
+    ], function(){ return typeof JSZip !== 'undefined'; })
+  ]);
+})();
+</script>
 <style>
 :root{
   --purple:#3E0F3C; --purple-2:#5C2159; --gold:#C9A24B; --gold-bright:#D9B85C;
@@ -706,12 +774,15 @@ const state = {
 };
 const CBE_GOLD = '#C9A24B';
 const CBE_PURPLE = '#5C2159';
-// CBE keeps the bank's purple, and the first other unrecognized entity (typically
-// "Industry") keeps brand gold. Beyond that, unrecognized entities get clearly
-// distinct hues instead of more purple/gold shades — those started looking muddy
-// once there were 3+ entities on the same chart.
-const ENTITY_EXTRA_PALETTE = ['#6B5B95','#3D6EA5','#C0663D','#4A7C59','#A13D3D','#2C3E6B'];
-const CATEGORY_PALETTE = [CBE_PURPLE, CBE_GOLD, '#1E7F72','#3D6EA5','#C0663D','#4A7C59','#A13D3D','#2C3E6B'];
+// CBE keeps the bank's purple, and the first other entity (typically "Industry")
+// keeps brand gold. From the 3rd entity onward — when CBE is compared to
+// non-bank things like industries/sectors rather than other named banks —
+// colors cycle through the Ethiopian flag palette (blue, green, yellow, red,
+// in that order), then fall back to clearly distinct extra hues if a chart
+// somehow has more than 4 "other" entities beyond CBE and gold.
+const ETHIOPIAN_FLAG_PALETTE = ['#0F47AF','#078930','#FCDD09','#DA121A']; // blue, green, yellow, red
+const ENTITY_EXTRA_PALETTE = ['#0F47AF','#078930','#FCDD09','#DA121A','#8B5E3C','#4B4E6D','#7A3B69','#3F6B5E','#9C4221','#35577D'];
+const CATEGORY_PALETTE = [CBE_PURPLE, CBE_GOLD, '#0F47AF','#078930','#FCDD09','#DA121A','#8B5E3C','#4B4E6D'];
 const ALL_CHART_TYPES = ['bar','bar-rounded','bar-labeled','bar3d','line','line-labeled','area','combo','pie','pie-labeled','pie-exploded','pie3d','doughnut','radar','histogram','scatter'];
 
 // Known Ethiopian bank colors, matched by name or common abbreviation regardless
@@ -2055,7 +2126,7 @@ function currentPageLabel(){
 
 async function exportPageToWord(){
   if(!state.chartInstances.length){ alert('No charts on this page to export. Try Overview, a channel page, Trends, or Explorer.'); return; }
-  if(!window.JSZip){ alert('Word export library did not load (check your internet connection) — try again.'); return; }
+  if(!window.JSZip){ alert('Word export library (JSZip) did not load — your network may be blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Try a different network or ask IT to allow-list one of these domains.'); return; }
   const pageLabel = currentPageLabel();
   const btn = document.getElementById('exportWordBtn');
   const originalLabel = btn ? btn.textContent : null;
@@ -2145,7 +2216,7 @@ function escapeXml(str){
 
 function exportPageToPDF(){
   if(!state.chartInstances.length){ alert('No charts on this page to export. Try Overview, a channel page, Trends, or Explorer.'); return; }
-  if(!window.jspdf){ alert('PDF library did not load (check your internet connection) — try again.'); return; }
+  if(!window.jspdf){ alert('PDF export library (jsPDF) did not load — your network may be blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Try a different network or ask IT to allow-list one of these domains.'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'landscape', unit:'pt', format:'a4'});
   const pageW = doc.internal.pageSize.getWidth();
@@ -2183,6 +2254,7 @@ function exportPageToPDF(){
 }
 
 function exportDataToExcel(){
+  if(typeof XLSX === 'undefined'){ alert('Excel export library (XLSX) did not load — your network may be blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Try a different network or ask IT to allow-list one of these domains.'); return; }
   const ents = activeEntitiesArr(), yrs = activeYearsArr();
   const rows = state.records.filter(r=> ents.includes(r.entity) && yrs.includes(r.year));
   if(!rows.length){ alert('No data loaded yet.'); return; }
@@ -2200,15 +2272,28 @@ function exportDataToExcel(){
 function handleFile(file){
   const fm = document.getElementById('fileMeta'); if(fm) fm.textContent = file.name + ' · ' + (file.size/1024).toFixed(1) + ' KB';
   const name = file.name.toLowerCase();
-  if(name.endsWith('.csv')){
-    const reader = new FileReader();
-    reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromCSVText(e.target.result), file.name), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
-    reader.readAsText(file);
-  } else {
-    const reader = new FileReader();
-    reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromWorkbook(e.target.result), file.name), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
-    reader.readAsArrayBuffer(file);
-  }
+  const neededLib = name.endsWith('.csv') ? 'Papa' : 'XLSX';
+  const libLabel = name.endsWith('.csv') ? 'PapaParse (CSV parser)' : 'SheetJS/XLSX (Excel parser)';
+
+  // Libraries load asynchronously from a CDN. Wait for the loader to
+  // finish (it already tries multiple mirrors) before parsing, and
+  // give a clear, actionable message if it never arrives — instead
+  // of a cryptic "XLSX is not defined" crash.
+  Promise.resolve(window.__libsReady).then(()=>{
+    if(!window.__libStatus || !window.__libStatus[neededLib]){
+      setStatus(false, `Couldn't load ${libLabel} from any CDN — your network is likely blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Ask IT to allow-list one of these domains, try a different network (e.g. mobile hotspot), or download the library file and host it locally (see comment at top of <head> in this file for instructions).`);
+      return;
+    }
+    if(name.endsWith('.csv')){
+      const reader = new FileReader();
+      reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromCSVText(e.target.result), file.name), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
+      reader.readAsText(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = e=>{ try{ addDataset(parseRowsToRecords(rowsFromWorkbook(e.target.result), file.name), file.name); } catch(err){ setStatus(false,'Parse error: '+err.message);} };
+      reader.readAsArrayBuffer(file);
+    }
+  });
 }
 
 function initDashboard(){
