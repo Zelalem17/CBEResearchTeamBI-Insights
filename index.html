@@ -312,13 +312,13 @@ footer{padding:14px 26px;font-family:var(--mono);font-size:10.5px;color:var(--te
 <script>
 /* =========================================================
    AUTH (client-side, static-site simulation via localStorage)
-   NOTE: this is access-gating for a static site, not real security —
+   NOTE: this is access-gating for a static site, not real security 
    see README "Security note".
 
    Both admin and researcher accounts can come from two places:
-   1. Baked into this file (BUILT_IN_ADMIN / BUILT_IN_RESEARCHERS below) — works
+   1. Baked into this file (BUILT_IN_ADMIN / BUILT_IN_RESEARCHERS below)  works
       for ANY visitor to the deployed site, on any device/browser.
-   2. This browser's local storage — accounts (or password changes) made right
+   2. This browser's local storage  accounts (or password changes) made right
       here, which work instantly on this browser but need the "Get permanent
       account code" step + a redeploy to reach everyone else.
 ========================================================= */
@@ -329,7 +329,7 @@ const LS_ADMIN = 'zlx_admin', LS_RESEARCHERS = 'zlx_researchers', LS_SESSION = '
 
 // Paste the output of "Get permanent account code" (in the admin panel) here to
 // change the admin login and/or researcher accounts for everyone, then commit +
-// push to GitHub. The password below is never shown anywhere in the UI — only
+// push to GitHub. The password below is never shown anywhere in the UI  only
 // its one-way hash lives here, so this file can be committed to a public repo
 // without exposing the actual password.
 const BUILT_IN_ADMIN = { username: "admin", passwordHash: "67a20ef9ca16dac572541eaa76e742683bf3785db5e52c5ae9a11d29e794e088" };
@@ -350,7 +350,7 @@ async function sha256Hex(text){
 }
 
 async function seedAuth(){
-  // (No admin migration needed here — any local override lacking a `basedOn`
+  // (No admin migration needed here  any local override lacking a `basedOn`
   // fingerprint matching the current BUILT_IN_ADMIN is automatically treated as
   // stale by getAdmin() below and discarded, so an old override left over from
   // a previous deploy's password can never silently mask the current one.)
@@ -372,7 +372,7 @@ async function seedAuth(){
 }
 // A local password change (via the admin panel) overrides the baked-in admin
 // credential for this browser only, until it's baked into the code too. Each
-// override is tagged with the BUILT_IN_ADMIN hash it was made against — if the
+// override is tagged with the BUILT_IN_ADMIN hash it was made against  if the
 // code's baked-in password has since changed (a new deploy with a new default),
 // that tag no longer matches, and the stale override is discarded automatically
 // so the new code-baked password takes effect immediately rather than being
@@ -382,7 +382,7 @@ function getAdmin(){
     const override = JSON.parse(localStorage.getItem(LS_ADMIN));
     if(override && override.passwordHash){
       if(override.basedOn === BUILT_IN_ADMIN.passwordHash) return override;
-      localStorage.removeItem(LS_ADMIN); // stale — superseded by a newer code-baked default
+      localStorage.removeItem(LS_ADMIN); // stale  superseded by a newer code-baked default
     }
   } catch(e){}
   return BUILT_IN_ADMIN;
@@ -422,7 +422,7 @@ function removeResearcher(username){
   saveRemovedUsernames(removed);
   saveLocalResearchers(getLocalResearchers().filter(r=>r.username!==username));
 }
-// Generates code covering BOTH the admin login and every researcher account —
+// Generates code covering BOTH the admin login and every researcher account 
 // paste the whole thing over the existing BUILT_IN_ADMIN / BUILT_IN_RESEARCHERS
 // declarations near the top of the script.
 function generateBuiltInCode(){
@@ -477,7 +477,7 @@ function buildLoginScreen(){
                onerror="this.replaceWith(Object.assign(document.createElement('div'), {className:'auth-emblem'}))">
         </div>
         <div class="auth-kicker">Commercial Bank of Ethiopia</div>
-        <h1>Digital Financial Services Analytics</h1>
+        <h1>DataInsight Research Portal</h1>
         <div class="tagline">Empowering the CBE research team to map trends, run multi-entity comparisons, and instantly visualize digital channel performance across every critical metric.</div>
         <div class="auth-brand-stats">
           <div><span class="num">7</span><span class="lbl">Digital channels</span></div>
@@ -492,7 +492,7 @@ function buildLoginScreen(){
                  onerror="this.replaceWith(Object.assign(document.createElement('div'), {className:'spiral'}))">
           </div>
           <h1>Sign in</h1>
-          <div class="auth-sub">Research team access — enter your credentials to continue</div>
+          <div class="auth-sub">Research team access  enter your credentials to continue</div>
           <div id="loginErr"></div>
           <div class="field"><label>Username</label><input type="text" id="loginUser" autocomplete="username"></div>
           <div class="field"><label>Password</label><input type="password" id="loginPass" autocomplete="current-password"></div>
@@ -517,7 +517,7 @@ function buildLoginScreen(){
       }
       setSession(sess);
       if(sess.role === 'admin'){
-        // Every fresh login always starts on the dashboard — overrides any tab
+        // Every fresh login always starts on the dashboard  overrides any tab
         // remembered from a previous session (mid-session refreshes still keep
         // whichever tab you're on; only the moment of logging in resets it).
         adminTab = 'dash';
@@ -559,7 +559,7 @@ function buildAdminScreen(session){
       narrow.appendChild(buildManageResearchers());
       body.appendChild(narrow);
     } else {
-      // Dashboard view must NOT be constrained by .admin-wrap — it needs full page width.
+      // Dashboard view must NOT be constrained by .admin-wrap  it needs full page width.
       body.appendChild(buildAppScreen(session, true));
       initDashboard();
     }
@@ -580,7 +580,7 @@ function buildManageResearchers(){
   panel.className = 'admin-panel';
   panel.innerHTML = `
     <h2>Add a researcher account</h2>
-    <div class="desc">Give this username and password to the researcher — they'll use it to sign in. Passwords are stored as a SHA-256 hash, never in plain text.</div>
+    <div class="desc">Give this username and password to the researcher  they'll use it to sign in. Passwords are stored as a SHA-256 hash, never in plain text.</div>
     <div class="admin-form">
       <div class="field"><label>Full name</label><input type="text" id="newName"></div>
       <div class="field"><label>Username</label><input type="text" id="newUser"></div>
@@ -588,7 +588,7 @@ function buildManageResearchers(){
       <button class="btn gold" id="addResearcherBtn">Add researcher</button>
     </div>
     <div id="addErr"></div>
-    <div id="addSuccess">${lastCreatedCredentials ? `<div class="auth-note success">Account created — copy these now, they won't be shown again:<br>
+    <div id="addSuccess">${lastCreatedCredentials ? `<div class="auth-note success">Account created  copy these now, they won't be shown again:<br>
          Username: <code>${lastCreatedCredentials.user}</code> · Password: <code>${lastCreatedCredentials.pass}</code></div>` : ''}</div>`;
   wrap.appendChild(panel);
 
@@ -648,7 +648,7 @@ function buildManageResearchers(){
   codePanel.className = 'admin-panel';
   codePanel.innerHTML = `
     <h2>Make accounts work for everyone</h2>
-    <div class="desc">This is a static site with no server — the admin login and any researcher accounts/password changes only work on this browser until you bake them into the file. Click below, copy the code, paste it over the existing <code>BUILT_IN_ADMIN</code> and <code>BUILT_IN_RESEARCHERS</code> declarations near the top of <code>index.html</code>'s script, then commit and push to GitHub.</div>
+    <div class="desc">This is a static site with no server  the admin login and any researcher accounts/password changes only work on this browser until you bake them into the file. Click below, copy the code, paste it over the existing <code>BUILT_IN_ADMIN</code> and <code>BUILT_IN_RESEARCHERS</code> declarations near the top of <code>index.html</code>'s script, then commit and push to GitHub.</div>
     <button class="btn ghost" id="genCodeBtn">Get permanent account code</button>
     <div id="codeOutput"></div>`;
   wrap.appendChild(codePanel);
@@ -723,14 +723,14 @@ function buildAppScreen(session, embeddedInAdmin){
     ${embeddedInAdmin ? '' : `
     <header class="app-head">
       <div class="head-row">
-        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Research BI</h1><div class="sub">Digital financial services — CBE vs Industry</div></div></div>
+        <div class="brand"><img class="brand-logo-img" src="data:image/png;base64,${CBE_LOGO_BASE64}" alt="Commercial Bank of Ethiopia"><div><h1>CBE Research BI</h1><div class="sub">Digital financial services  CBE vs Industry</div></div></div>
         <div class="who-row"><span class="who-pill">${session.name} · ${session.role==='admin'?'Admin':'Researcher'}</span><button class="logout-btn" id="logoutBtn">Log out</button></div>
       </div>
       <div class="ledger-tape">
-        <span>ENTITIES <b id="tapeEntities">—</b></span>
-        <span>PERIODS <b id="tapePeriods">—</b></span>
-        <span>CHANNELS <b id="tapeSections">—</b></span>
-        <span>RECORDS <b id="tapeRecords">—</b></span>
+        <span>ENTITIES <b id="tapeEntities"></b></span>
+        <span>PERIODS <b id="tapePeriods"></b></span>
+        <span>CHANNELS <b id="tapeSections"></b></span>
+        <span>RECORDS <b id="tapeRecords"></b></span>
       </div>
     </header>`}
     <div class="toolbar">
@@ -749,10 +749,10 @@ function buildAppScreen(session, embeddedInAdmin){
     <div class="app-shell">
       <aside class="filter-pane" id="filterPane"></aside>
       <main class="canvas" id="pageCanvas">
-        <div class="empty-note">Upload a CSV or Excel file to populate the ledger — see the sidebar for accepted formats.</div>
+        <div class="empty-note">Upload a CSV or Excel file to populate the ledger  see the sidebar for accepted formats.</div>
       </main>
     </div>
-    <footer>COMMERCIAL BANK OF ETHIOPIA · CBE Research BI · static client-side app — no data leaves your browser</footer>`;
+    <footer>COMMERCIAL BANK OF ETHIOPIA · CBE Research BI · static client-side app  no data leaves your browser</footer>`;
   setTimeout(()=>{
     const lb = document.getElementById('logoutBtn');
     if(lb) lb.onclick = ()=>{ clearSession(); renderRoot(); };
@@ -775,8 +775,8 @@ const state = {
 const CBE_GOLD = '#C9A24B';
 const CBE_PURPLE = '#5C2159';
 // CBE keeps the bank's purple, and the first other entity (typically "Industry")
-// keeps brand gold. From the 3rd entity onward — when CBE is compared to
-// non-bank things like industries/sectors rather than other named banks —
+// keeps brand gold. From the 3rd entity onward  when CBE is compared to
+// non-bank things like industries/sectors rather than other named banks 
 // colors cycle through the Ethiopian flag palette (blue, green, yellow, red,
 // in that order), then fall back to clearly distinct extra hues if a chart
 // somehow has more than 4 "other" entities beyond CBE and gold.
@@ -789,9 +789,9 @@ const ALL_CHART_TYPES = ['bar','bar-rounded','bar-labeled','bar3d','line','line-
 // of how a dataset spells or shortens it. CBE, Awash, Dashen, Abyssinia, and
 // Cooperative Bank of Oromia are set exactly as specified; the rest use each
 // bank's well-known public branding where confidently identifiable, chosen to
-// stay clearly distinct from every other color in this list — if any of these
+// stay clearly distinct from every other color in this list  if any of these
 // don't match a bank's actual current brand guide, they're easy to correct.
-// Checked in order — more specific names first, so e.g. "Cooperative Bank of
+// Checked in order  more specific names first, so e.g. "Cooperative Bank of
 // Oromia" is caught before the plainer "oromia" (a genuinely different bank).
 const BANK_COLOR_TABLE = [
   { key:'cbe',        color: CBE_PURPLE, names:['cbe','commercial bank of ethiopia'] },
@@ -870,7 +870,7 @@ function isPeriodLikeToken(tok){
       || /^(Q[1-4]|H[1-2])[\s\-\/]?(19|20)\d{2}$/i.test(s);
 }
 
-// Detects a simple "entity rows × period columns" matrix — e.g. a bank-name
+// Detects a simple "entity rows × period columns" matrix  e.g. a bank-name
 // column followed by one column per year, with a single implied metric (often
 // named by a title row above the header, like a merged "Total Deposits in
 // Millions (Birr)" cell). Common shape for a plain cross-tab export that isn't
@@ -983,7 +983,7 @@ function parseRowsToRecords(rows, fileLabel){
       if(raw == null || String(raw).trim()==='') continue;
       const value = parseFloat(raw);
       if(Number.isNaN(value)) continue;
-      out.push({year: lastYear || '—', entity, section: meta.section, metric: meta.metric, value});
+      out.push({year: lastYear || '', entity, section: meta.section, metric: meta.metric, value});
     }
   }
   return out;
@@ -1008,8 +1008,8 @@ function deriveDatasetView(records){
   const years = [...new Set(records.map(r=>r.year))].sort();
   return {sections, metricsBySection, entities, years};
 }
-// CBE always leads wherever entities are listed — charts, tables, legends, the
-// filter pane — since this is CBE's own reporting tool. Everyone else keeps
+// CBE always leads wherever entities are listed  charts, tables, legends, the
+// filter pane  since this is CBE's own reporting tool. Everyone else keeps
 // their original relative order.
 function sortEntitiesCbeFirst(list){
   return [...list].sort((a,b)=>{
@@ -1022,13 +1022,13 @@ function sortEntitiesCbeFirst(list){
 }
 function updateTapeUI(){
   const te = document.getElementById('tapeEntities'); if(te) te.textContent = state.entities.join(' / ');
-  const tp = document.getElementById('tapePeriods'); if(tp) tp.textContent = state.years.length ? state.years[0]+'–'+state.years[state.years.length-1] : '—';
+  const tp = document.getElementById('tapePeriods'); if(tp) tp.textContent = state.years.length ? state.years[0]+'–'+state.years[state.years.length-1] : '';
   const ts = document.getElementById('tapeSections'); if(ts) ts.textContent = state.sections.length;
   const tr = document.getElementById('tapeRecords'); if(tr) tr.textContent = state.records.length;
 }
 
 // Makes an already-uploaded dataset (by id) the one being viewed. Filters,
-// chart-type choices, and the active page reset to defaults on switch — same
+// chart-type choices, and the active page reset to defaults on switch  same
 // as what happens today when a fresh file is uploaded.
 function activateDataset(id){
   const ds = state.datasets.find(d=>d.id===id);
@@ -1054,7 +1054,7 @@ function activateDataset(id){
   state.page = 'overview';
   state.dataFilterSection = 'ALL';
 
-  setStatus(true, `${ds.records.length} records loaded — ${ds.name}`);
+  setStatus(true, `${ds.records.length} records loaded  ${ds.name}`);
   updateTapeUI();
   buildPageTabs();
   buildFilterPane();
@@ -1089,7 +1089,7 @@ function removeDataset(id){
     setStatus(false, 'Awaiting data');
     updateTapeUI();
     const canvas = document.getElementById('pageCanvas');
-    if(canvas) canvas.innerHTML = '<div class="empty-note">Upload a CSV or Excel file to populate the ledger — see the sidebar for accepted formats.</div>';
+    if(canvas) canvas.innerHTML = '<div class="empty-note">Upload a CSV or Excel file to populate the ledger  see the sidebar for accepted formats.</div>';
     const tabs = document.getElementById('pageTabs'); if(tabs) tabs.innerHTML = '';
     const fm = document.getElementById('fileMeta'); if(fm) fm.textContent = '';
     buildFilterPane();
@@ -1136,7 +1136,7 @@ function buildFilterPane(){
   entLabel.className = 'fp-label'; entLabel.innerHTML = '<span>Entities</span>';
   pane.appendChild(entLabel);
   const entHint = document.createElement('div');
-  entHint.className = 'fp-drag-hint'; entHint.textContent = 'Drag to reorder — order here matches the order shown in every graph.';
+  entHint.className = 'fp-drag-hint'; entHint.textContent = 'Drag to reorder  order here matches the order shown in every graph.';
   pane.appendChild(entHint);
 
   let draggedEntity = null;
@@ -1264,13 +1264,13 @@ function valueFor(entity, section, metric, year){
   return rec ? rec.value : undefined;
 }
 function fmt(n){
-  if(n===undefined||n===null||Number.isNaN(n)) return '—';
+  if(n===undefined||n===null||Number.isNaN(n)) return '';
   if(Math.abs(n) >= 1000) return n.toLocaleString(undefined,{maximumFractionDigits:1});
   return n.toLocaleString(undefined,{maximumFractionDigits:2});
 }
 
 /* =========================================================
-   CHART BUILDER — bar/line/area/pie/doughnut/radar/histogram/scatter
+   CHART BUILDER  bar/line/area/pie/doughnut/radar/histogram/scatter
 ========================================================= */
 function baseGridColor(){ return '#EADFE8'; }
 function baseCartesianOptions(chartType, yTitle, chartTitle){
@@ -1690,7 +1690,7 @@ function leaderboardTable(rows, entCols, idx, title, desc){
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${r.section}</td><td>${r.metric}</td>` +
       r.vals.map((v,i)=>`<td class="${i===leaderIdx?'lead':''}">${fmt(v)}</td>`).join('') +
-      `<td>${leaderIdx>=0? entCols[leaderIdx] : '—'}</td>`;
+      `<td>${leaderIdx>=0? entCols[leaderIdx] : ''}</td>`;
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
@@ -1737,7 +1737,7 @@ function persistDashboardState(){
       sortState: state.sortState
     };
     localStorage.setItem(LS_DASHBOARD, JSON.stringify(snapshot));
-  }catch(e){ /* storage full or unavailable — persistence is a convenience, not critical */ }
+  }catch(e){ /* storage full or unavailable  persistence is a convenience, not critical */ }
 }
 
 // Restores every uploaded dataset (and where you were: which one was active,
@@ -1789,7 +1789,7 @@ function restoreDashboardState(){
       || (snap.page && snap.page.startsWith('sec:') && state.sections.includes(snap.page.slice(4)));
     state.page = validPage ? snap.page : 'overview';
 
-    setStatus(true, `${state.records.length} records restored from your last session — ${ds.name}`);
+    setStatus(true, `${state.records.length} records restored from your last session  ${ds.name}`);
     updateTapeUI();
     const fm = document.getElementById('fileMeta'); if(fm) fm.textContent = ds.name + ' (restored)';
 
@@ -1819,13 +1819,13 @@ function renderOverview(root, mounts){
     const metric = state.metricsBySection[sec][0];
     return { section: sec, metric, vals: ents.map(e=>valueFor(e,sec,metric,ly)) };
   });
-  root.appendChild(leaderboardTable(rows, ents, '01', `All-channel comparison — ${ly}`, 'Primary metric per channel, compared across every entity.'));
+  root.appendChild(leaderboardTable(rows, ents, '01', `All-channel comparison  ${ly}`, 'Primary metric per channel, compared across every entity.'));
 
   const grid = document.createElement('div');
   grid.className = 'grid-2';
   const barSeries = {};
   ents.forEach(e=> barSeries[e] = state.sections.map(sec=>{ const m = state.metricsBySection[sec][0]; return valueFor(e,sec,m,ly) ?? 0; }));
-  const p1 = createChartPanel({ id:'ov-bar', idx:'02', title:'Channel scale comparison', desc:`Primary metric per channel, entities side by side — ${ly}.`,
+  const p1 = createChartPanel({ id:'ov-bar', idx:'02', title:'Channel scale comparison', desc:`Primary metric per channel, entities side by side  ${ly}.`,
     labels: state.sections, seriesMap: barSeries, defaultType:'bar', allowed:ALL_CHART_TYPES, tall:true, yTitle:'Value (native units)' });
   grid.appendChild(p1.el); mounts.push(p1.mount);
 
@@ -1833,21 +1833,21 @@ function renderOverview(root, mounts){
     const [a,b] = ents;
     let sumA=0,sumB=0;
     state.sections.forEach(sec=>{ const m = state.metricsBySection[sec][0]; sumA += valueFor(a,sec,m,ly)||0; sumB += valueFor(b,sec,m,ly)||0; });
-    const p2 = createChartPanel({ id:'ov-gauge', idx:'03', title:`${a} share of combined footprint`, desc:`${a} vs ${b}, summed primary metrics — ${ly}.`,
+    const p2 = createChartPanel({ id:'ov-gauge', idx:'03', title:`${a} share of combined footprint`, desc:`${a} vs ${b}, summed primary metrics  ${ly}.`,
       labels:['Share'], seriesMap:{[a]:[sumA],[b]:[sumB]}, defaultType:'doughnut', allowed:ALL_CHART_TYPES, tall:true });
     grid.appendChild(p2.el); mounts.push(p2.mount);
   } else {
     const shareSeries = {}; ents.forEach(e=> shareSeries[e] = [state.sections.reduce((s,sec)=>{ const m=state.metricsBySection[sec][0]; return s+(valueFor(e,sec,m,ly)||0); },0)]);
-    const p2 = createChartPanel({ id:'ov-pie', idx:'03', title:'Share of industry footprint', desc:`Entity share of total across all channels — ${ly}.`,
+    const p2 = createChartPanel({ id:'ov-pie', idx:'03', title:'Share of industry footprint', desc:`Entity share of total across all channels  ${ly}.`,
       labels:['Share'], seriesMap: shareSeries, defaultType:'pie', allowed:ALL_CHART_TYPES, tall:true });
     grid.appendChild(p2.el); mounts.push(p2.mount);
   }
   root.appendChild(grid);
 
-  // Individual chart per channel — not just the combined totals above.
+  // Individual chart per channel  not just the combined totals above.
   const heading = document.createElement('div');
   heading.className = 'section-heading';
-  heading.textContent = 'Every channel, individually — primary metric trend';
+  heading.textContent = 'Every channel, individually  primary metric trend';
   root.appendChild(heading);
 
   const yrs = activeYearsArr();
@@ -1887,7 +1887,7 @@ function renderSectionPage(root, mounts, sec){
   const grid = document.createElement('div');
   grid.className = 'grid-2';
   const lineSeries = {}; ents.forEach(e=> lineSeries[e] = yrs.map(y=>valueFor(e,sec,metric,y) ?? null));
-  const p1 = createChartPanel({ id:'sec-'+sec+'-trend', idx:'01', title:`${metric} — trend`, desc:`${sec} · ${ents.join(' vs ')} across selected periods.`,
+  const p1 = createChartPanel({ id:'sec-'+sec+'-trend', idx:'01', title:`${metric}  trend`, desc:`${sec} · ${ents.join(' vs ')} across selected periods.`,
     labels: yrs, seriesMap: lineSeries, defaultType:'line', allowed:ALL_CHART_TYPES, yTitle: metric });
   grid.appendChild(p1.el); mounts.push(p1.mount);
 
@@ -1900,17 +1900,17 @@ function renderSectionPage(root, mounts, sec){
   const grid2 = document.createElement('div');
   grid2.className = 'grid-2';
   const pieSeries = {}; ents.forEach(e=> pieSeries[e] = [valueFor(e,sec,metric,ly) ?? 0]);
-  const p3 = createChartPanel({ id:'sec-'+sec+'-share', idx:'03', title:`Share — ${ly}`, desc:`Proportional split of ${metric.toLowerCase()}.`,
+  const p3 = createChartPanel({ id:'sec-'+sec+'-share', idx:'03', title:`Share  ${ly}`, desc:`Proportional split of ${metric.toLowerCase()}.`,
     labels:['Share'], seriesMap: pieSeries, defaultType:'pie', allowed:ALL_CHART_TYPES });
   grid2.appendChild(p3.el); mounts.push(p3.mount);
 
   const rows = metrics.map(m=>({ section:m, metric:'', vals: ents.map(e=>valueFor(e,sec,m,ly)) }));
-  const tablePanel = leaderboardTable(rows, ents, '04', `All metrics in ${sec} — ${ly}`, 'Every tracked metric in this channel, entities compared.');
+  const tablePanel = leaderboardTable(rows, ents, '04', `All metrics in ${sec}  ${ly}`, 'Every tracked metric in this channel, entities compared.');
   tablePanel.querySelector('thead').innerHTML = `<tr><th>Metric</th>${ents.map(e=>`<th>${e}</th>`).join('')}<th>Leader</th></tr>`;
   grid2.appendChild(tablePanel);
   root.appendChild(grid2);
 
-  // Individual chart per metric in this channel — every metric gets its own graph,
+  // Individual chart per metric in this channel  every metric gets its own graph,
   // not just whichever one is picked in the dropdown above.
   const heading = document.createElement('div');
   heading.className = 'section-heading';
@@ -1941,7 +1941,7 @@ function renderTrends(root, mounts){
   ctrl.className = 'control-row';
   ctrl.innerHTML = `<div class="control-group"><label>Focus metric</label></div>`;
   const sel = document.createElement('select');
-  allPairs.forEach(p=>{ const key=p.sec+'|||'+p.m; const o=document.createElement('option'); o.value=key; o.textContent = `${p.sec} — ${p.m}`; if(key===focusKey) o.selected=true; sel.appendChild(o); });
+  allPairs.forEach(p=>{ const key=p.sec+'|||'+p.m; const o=document.createElement('option'); o.value=key; o.textContent = `${p.sec}  ${p.m}`; if(key===focusKey) o.selected=true; sel.appendChild(o); });
   sel.onchange = ()=>{ state.explorer.trendFocus = sel.value; render(); };
   ctrl.querySelector('.control-group').appendChild(sel);
   root.appendChild(ctrl);
@@ -1949,7 +1949,7 @@ function renderTrends(root, mounts){
   const grid = document.createElement('div');
   grid.className = 'grid-2';
   const lineSeries = {}; ents.forEach(e=> lineSeries[e] = yrs.map(y=>valueFor(e,focusSec,focusMetric,y) ?? null));
-  const p1 = createChartPanel({ id:'tr-line', idx:'01', title:`${focusMetric} — full trend`, desc:`${focusSec} · ${ents.join(' vs ')}.`,
+  const p1 = createChartPanel({ id:'tr-line', idx:'01', title:`${focusMetric}  full trend`, desc:`${focusSec} · ${ents.join(' vs ')}.`,
     labels: yrs, seriesMap: lineSeries, defaultType:'line', allowed:ALL_CHART_TYPES, yTitle: focusMetric, tall:true });
   grid.appendChild(p1.el); mounts.push(p1.mount);
 
@@ -2039,7 +2039,7 @@ function renderExplorer(root, mounts){
   const pngBtn = document.createElement('button'); pngBtn.className='png-btn'; pngBtn.textContent='⭳ PNG';
   head.appendChild(pngBtn);
   panelWrap.appendChild(head);
-  const desc = document.createElement('div'); desc.className='desc'; desc.textContent = `${sec} · custom visual — pick channel, metric, and chart type above.`;
+  const desc = document.createElement('div'); desc.className='desc'; desc.textContent = `${sec} · custom visual  pick channel, metric, and chart type above.`;
   panelWrap.appendChild(desc);
   const cw = document.createElement('div'); cw.className = 'chart-wrap tall';
   const canvas = document.createElement('canvas'); cw.appendChild(canvas); panelWrap.appendChild(cw);
@@ -2053,7 +2053,7 @@ function renderExplorer(root, mounts){
   });
 
   const rows = [{ section: sec, metric, vals: ents.map(e=>valueFor(e,sec,metric,ly)) }];
-  root.appendChild(leaderboardTable(rows, ents, '·', `${metric} — ${ly}`, 'Selected metric snapshot.'));
+  root.appendChild(leaderboardTable(rows, ents, '·', `${metric}  ${ly}`, 'Selected metric snapshot.'));
 }
 
 /* ---------- DATA TABLE ---------- */
@@ -2126,7 +2126,7 @@ function currentPageLabel(){
 
 async function exportPageToWord(){
   if(!state.chartInstances.length){ alert('No charts on this page to export. Try Overview, a channel page, Trends, or Explorer.'); return; }
-  if(!window.JSZip){ alert('Word export library (JSZip) did not load — your network may be blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Try a different network or ask IT to allow-list one of these domains.'); return; }
+  if(!window.JSZip){ alert('Word export library (JSZip) did not load  your network may be blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Try a different network or ask IT to allow-list one of these domains.'); return; }
   const pageLabel = currentPageLabel();
   const btn = document.getElementById('exportWordBtn');
   const originalLabel = btn ? btn.textContent : null;
@@ -2134,16 +2134,16 @@ async function exportPageToWord(){
 
   try {
     // Builds a genuine .docx (Office Open XML: a real zip of XML parts), rather than
-    // an HTML-file-renamed-.doc trick — that older approach silently dropped inline
+    // an HTML-file-renamed-.doc trick  that older approach silently dropped inline
     // base64 images in Word's HTML import filter. This is the actual native format.
     const zip = new JSZip();
-    const MAX_WIDTH_EMU = 5943600; // 6.5in at 914400 EMU/in — fits inside default page margins
+    const MAX_WIDTH_EMU = 5943600; // 6.5in at 914400 EMU/in  fits inside default page margins
     const rels = [`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`];
     const media = zip.folder('word/media');
     let bodyXml = `
 <w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="34"/><w:color w:val="3E0F3C"/></w:rPr><w:t xml:space="preserve">Commercial Bank of Ethiopia</w:t></w:r></w:p>
-<w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:sz w:val="22"/><w:color w:val="5C2159"/></w:rPr><w:t xml:space="preserve">Digital Financial Services Ledger — ${escapeXml(pageLabel)}</w:t></w:r></w:p>
+<w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:sz w:val="22"/><w:color w:val="5C2159"/></w:rPr><w:t xml:space="preserve">Digital Financial Services Ledger  ${escapeXml(pageLabel)}</w:t></w:r></w:p>
 <w:p><w:pPr><w:spacing w:after="240"/></w:pPr><w:r><w:rPr><w:sz w:val="17"/><w:color w:val="666666"/></w:rPr><w:t xml:space="preserve">Generated ${escapeXml(new Date().toLocaleString())} · Entities: ${escapeXml(activeEntitiesArr().join(', '))} · Periods: ${escapeXml(activeYearsArr().join(', '))}</w:t></w:r></w:p>`;
 
     state.chartInstances.forEach((c, i)=>{
@@ -2216,7 +2216,7 @@ function escapeXml(str){
 
 function exportPageToPDF(){
   if(!state.chartInstances.length){ alert('No charts on this page to export. Try Overview, a channel page, Trends, or Explorer.'); return; }
-  if(!window.jspdf){ alert('PDF export library (jsPDF) did not load — your network may be blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Try a different network or ask IT to allow-list one of these domains.'); return; }
+  if(!window.jspdf){ alert('PDF export library (jsPDF) did not load  your network may be blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Try a different network or ask IT to allow-list one of these domains.'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'landscape', unit:'pt', format:'a4'});
   const pageW = doc.internal.pageSize.getWidth();
@@ -2229,7 +2229,7 @@ function exportPageToPDF(){
     doc.rect(0,0,pageW,54,'F');
     doc.setTextColor(255,255,255);
     doc.setFontSize(14);
-    doc.text('Commercial Bank of Ethiopia — Digital Financial Services Ledger', 24, 24);
+    doc.text('Commercial Bank of Ethiopia  Digital Financial Services Ledger', 24, 24);
     doc.setFontSize(10);
     doc.setTextColor(217,199,214);
     doc.text(`${pageLabel} · Generated ${new Date().toLocaleDateString()}`, 24, 40);
@@ -2254,7 +2254,7 @@ function exportPageToPDF(){
 }
 
 function exportDataToExcel(){
-  if(typeof XLSX === 'undefined'){ alert('Excel export library (XLSX) did not load — your network may be blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Try a different network or ask IT to allow-list one of these domains.'); return; }
+  if(typeof XLSX === 'undefined'){ alert('Excel export library (XLSX) did not load  your network may be blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Try a different network or ask IT to allow-list one of these domains.'); return; }
   const ents = activeEntitiesArr(), yrs = activeYearsArr();
   const rows = state.records.filter(r=> ents.includes(r.entity) && yrs.includes(r.year));
   if(!rows.length){ alert('No data loaded yet.'); return; }
@@ -2277,11 +2277,11 @@ function handleFile(file){
 
   // Libraries load asynchronously from a CDN. Wait for the loader to
   // finish (it already tries multiple mirrors) before parsing, and
-  // give a clear, actionable message if it never arrives — instead
+  // give a clear, actionable message if it never arrives  instead
   // of a cryptic "XLSX is not defined" crash.
   Promise.resolve(window.__libsReady).then(()=>{
     if(!window.__libStatus || !window.__libStatus[neededLib]){
-      setStatus(false, `Couldn't load ${libLabel} from any CDN — your network is likely blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Ask IT to allow-list one of these domains, try a different network (e.g. mobile hotspot), or download the library file and host it locally (see comment at top of <head> in this file for instructions).`);
+      setStatus(false, `Couldn't load ${libLabel} from any CDN  your network is likely blocking cdnjs.cloudflare.com, jsdelivr.net and unpkg.com. Ask IT to allow-list one of these domains, try a different network (e.g. mobile hotspot), or download the library file and host it locally (see comment at top of <head> in this file for instructions).`);
       return;
     }
     if(name.endsWith('.csv')){
