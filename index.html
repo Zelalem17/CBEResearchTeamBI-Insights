@@ -2147,7 +2147,7 @@ async function exportPageToWord(){
     const media = zip.folder('word/media');
     let bodyXml = `
 <w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="34"/><w:color w:val="3E0F3C"/></w:rPr><w:t xml:space="preserve">Commercial Bank of Ethiopia</w:t></w:r></w:p>
-<w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:sz w:val="22"/><w:color w:val="5C2159"/></w:rPr><w:t xml:space="preserve">Digital Financial Services Ledger  ${escapeXml(pageLabel)}</w:t></w:r></w:p>
+<w:p><w:pPr><w:spacing w:after="60"/></w:pPr><w:r><w:rPr><w:sz w:val="22"/><w:color w:val="5C2159"/></w:rPr><w:t xml:space="preserve">Core Reporting & Export Hub  ${escapeXml(pageLabel)}</w:t></w:r></w:p>
 <w:p><w:pPr><w:spacing w:after="240"/></w:pPr><w:r><w:rPr><w:sz w:val="17"/><w:color w:val="666666"/></w:rPr><w:t xml:space="preserve">Generated ${escapeXml(new Date().toLocaleString())} · Entities: ${escapeXml(activeEntitiesArr().join(', '))} · Periods: ${escapeXml(activeYearsArr().join(', '))}</w:t></w:r></w:p>`;
 
     state.chartInstances.forEach((c, i)=>{
@@ -2233,7 +2233,7 @@ function exportPageToPDF(){
     doc.rect(0,0,pageW,54,'F');
     doc.setTextColor(255,255,255);
     doc.setFontSize(14);
-    doc.text('Commercial Bank of Ethiopia  Digital Financial Services Ledger', 24, 24);
+    doc.text('Commercial Bank of Ethiopia  Core Reporting & Export Hub', 24, 24);
     doc.setFontSize(10);
     doc.setTextColor(217,199,214);
     doc.text(`${pageLabel} · Generated ${new Date().toLocaleDateString()}`, 24, 40);
