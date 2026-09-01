@@ -2206,7 +2206,7 @@ async function exportPageToWord(){
     const blob = await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `CBE_Digital_Ledger_${pageLabel.replace(/\s+/g,'_')}.docx`;
+    a.download = `Core_Reporting_&_Export_Hub_${pageLabel.replace(/\s+/g,'_')}.docx`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   } catch(e){
     alert('Word export failed: ' + e.message);
