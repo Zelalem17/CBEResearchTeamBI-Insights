@@ -2206,7 +2206,7 @@ async function exportPageToWord(){
     const blob = await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `Core_Reporting_&_Export_Hub_${pageLabel.replace(/\s+/g,'_')}.docx`;
+    a.download = `CBE_Core_Reporting_&_Export_Hub_${pageLabel.replace(/\s+/g,'_')}.docx`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   } catch(e){
     alert('Word export failed: ' + e.message);
@@ -2254,7 +2254,7 @@ function exportPageToPDF(){
     if(h > maxH){ h = maxH; w = h*ratio; }
     doc.addImage(img, 'PNG', 24, imgTop, w, h);
   });
-  doc.save(`CBE_Digital_Ledger_${pageLabel.replace(/\s+/g,'_')}.pdf`);
+  doc.save(`CBE_Core_Reporting_&_Export_Hub_${pageLabel.replace(/\s+/g,'_')}.pdf`);
 }
 
 function exportDataToExcel(){
@@ -2267,7 +2267,7 @@ function exportDataToExcel(){
   ws['!cols'] = [{wch:10},{wch:14},{wch:20},{wch:42},{wch:14}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Digital Ledger Data');
-  XLSX.writeFile(wb, 'CBE_Digital_Ledger_Data.xlsx');
+  XLSX.writeFile(wb, 'CBE_Core_Reporting_&_Export_Hub_Data.xlsx');
 }
 
 /* =========================================================
